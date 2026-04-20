@@ -8,6 +8,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 fal.config({ credentials: process.env.FAL_KEY })
 
 const MAX_BASE64_SIZE = 14 * 1024 * 1024
+const FAL_MODEL = 'fal-ai/kling-video/v2.6/pro/image-to-video'
 
 function getSupabase() {
   const cookieStore = cookies()
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
     let promptOtimizado = `Professional real estate video: ${promptPortugues}`
     try {
       const claudeRes = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 300,
         system: "You are an expert at creating prompts for AI video generation in real estate. Convert the user's Portuguese description into a professional English prompt optimized for generating realistic real estate videos. Focus on: architectural transformation, construction progress, landscaping, lighting quality, and cinematic camera movement. The prompt must be vivid, specific and under 200 characters. Never mention people or faces. Reply with only the prompt, no explanations.",
         messages: [{ role: 'user', content: promptPortugues }],
@@ -84,7 +85,24 @@ export async function POST(request: Request) {
       console.error('Claude error:', err)
     }
 
-    // Criar registo do vídeo
+    // Submeter job ao fal.ai de forma assíncrona (sem esperar pelo resultado)
+    let falRequestId: string | null = null
+    try {
+      const { request_id } = await fal.queue.submit(FAL_MODEL, {
+        input: {
+          image_url: `data:${imageMimeType};base64,${imageBase64}`,
+          prompt: promptOtimizado,
+          duration: duracaoNum <= 5 ? 5 : 10,
+          aspect_ratio: '16:9',
+        },
+      })
+      falRequestId = request_id
+    } catch (err) {
+      console.error('Fal.ai submit error:', err)
+      return NextResponse.json({ error: 'Erro ao submeter o vídeo para geração. Tenta novamente.' }, { status: 500 })
+    }
+
+    // Criar registo do vídeo com o request_id do fal
     const { data: videoRecord, error: insertError } = await supabase
       .from('videos')
       .insert({
@@ -95,6 +113,7 @@ export async function POST(request: Request) {
         creditos_gastos: duracaoNum,
         qualidade,
         status: 'processing',
+        fal_request_id: falRequestId,
       })
       .select()
       .single()
@@ -109,54 +128,9 @@ export async function POST(request: Request) {
       .update({ creditos: profile.creditos - duracaoNum })
       .eq('id', session.user.id)
 
-    // Gerar vídeo com Fal.ai
-    try {
-      const imageDataUrl = `data:${imageMimeType};base64,${imageBase64}`
+    // Retornar imediatamente — o frontend faz polling para verificar o estado
+    return NextResponse.json({ videoId: videoRecord.id, status: 'processing' })
 
-      const result = await fal.subscribe('fal-ai/kling-video/v2.6/pro/image-to-video', {
-        input: {
-          image_url: imageDataUrl,
-          prompt: promptOtimizado,
-          duration: duracaoNum <= 5 ? '5' : '10',
-          aspect_ratio: '16:9',
-        },
-        logs: false,
-      })
-
-      const anyResult = result as Record<string, unknown>
-      const videoUrl =
-        (anyResult?.video as { url?: string })?.url ||
-        ((anyResult?.data as Record<string, unknown>)?.video as { url?: string })?.url ||
-        null
-
-      if (videoUrl) {
-        await supabase
-          .from('videos')
-          .update({ video_url: videoUrl, status: 'completed' })
-          .eq('id', videoRecord.id)
-
-        return NextResponse.json({ videoId: videoRecord.id, status: 'completed', videoUrl })
-      } else {
-        throw new Error('URL do vídeo não recebida')
-      }
-    } catch (falError) {
-      // Devolver créditos
-      await supabase
-        .from('profiles')
-        .update({ creditos: profile.creditos })
-        .eq('id', session.user.id)
-
-      await supabase
-        .from('videos')
-        .update({ status: 'failed' })
-        .eq('id', videoRecord.id)
-
-      console.error('Fal.ai error:', falError)
-      return NextResponse.json(
-        { error: 'Ocorreu um erro na geração do vídeo. Os teus créditos foram devolvidos.' },
-        { status: 500 }
-      )
-    }
   } catch (err) {
     console.error('API error:', err)
     return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 })
