@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ImoRender
 
-## Getting Started
+Plataforma SaaS para consultores imobiliários portugueses gerarem vídeos com IA a partir de fotos de imóveis.
 
-First, run the development server:
+## Stack
+
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS, Framer Motion
+- **Backend**: Next.js API Routes
+- **Base de dados + Auth**: Supabase
+- **Geração de vídeo**: Fal.ai (kling-video-v2-5-image-to-video)
+- **Otimização de prompts**: Anthropic Claude API
+- **Deploy**: Netlify
+
+## Instalação local
 
 ```bash
+git clone https://github.com/SEU_UTILIZADOR/imorender.git
+cd imorender
+npm install
+cp .env.example .env.local
+# Editar .env.local com os teus valores
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variáveis de ambiente
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copiar `.env.example` para `.env.local` e preencher:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+FAL_KEY=
+ANTHROPIC_API_KEY=
+```
 
-## Learn More
+## Base de dados Supabase
 
-To learn more about Next.js, take a look at the following resources:
+Executar os ficheiros SQL em `supabase/migrations/` no editor SQL do Supabase:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. `001_create_tables.sql`
+2. `002_insert_planos.sql`
+3. `003_create_trigger.sql`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy no Netlify
 
-## Deploy on Vercel
+1. Push para GitHub
+2. Netlify > Add new site > Import an existing project
+3. Ligar ao repositório `imorender`
+4. Build settings são lidas do `netlify.toml`
+5. Adicionar environment variables em Site settings > Environment variables
+6. Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Planos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Plano   | Preço  | Créditos/mês | Qualidade |
+|---------|--------|--------------|-----------|
+| Free    | 0      | 10           | STD       |
+| Starter | 19.99  | 150          | STD       |
+| Pro     | 39.99  | 400          | PRO       |
+| Agency  | 79.99  | 900          | PRO       |
