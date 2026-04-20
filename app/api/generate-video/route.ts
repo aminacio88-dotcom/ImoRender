@@ -94,6 +94,7 @@ export async function POST(request: Request) {
           prompt: promptOtimizado,
           duration: duracaoNum <= 5 ? 5 : 10,
           aspect_ratio: '16:9',
+          enable_audio: false,
         },
       })
       falRequestId = request_id
