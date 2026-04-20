@@ -5,7 +5,7 @@ import { fal } from '@fal-ai/client'
 
 fal.config({ credentials: process.env.FAL_KEY })
 
-const FAL_MODEL = 'fal-ai/kling-video/v2.6/pro/image-to-video'
+const FAL_MODEL = 'fal-ai/kling-video/v2.6/standard/image-to-video'
 
 export async function GET(
   request: Request,

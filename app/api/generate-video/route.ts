@@ -8,7 +8,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 fal.config({ credentials: process.env.FAL_KEY })
 
 const MAX_BASE64_SIZE = 14 * 1024 * 1024
-const FAL_MODEL = 'fal-ai/kling-video/v2.6/pro/image-to-video'
+const FAL_MODEL = 'fal-ai/kling-video/v2.6/standard/image-to-video'
 
 function getSupabase() {
   const cookieStore = cookies()
