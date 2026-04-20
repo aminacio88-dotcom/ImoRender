@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     try {
       const imageDataUrl = `data:${imageMimeType};base64,${imageBase64}`
 
-      const result = await fal.subscribe('fal-ai/kling-video-v2-5-image-to-video', {
+      const result = await fal.subscribe('fal-ai/kling-video/v2.6/pro/image-to-video', {
         input: {
           image_url: imageDataUrl,
           prompt: promptOtimizado,
