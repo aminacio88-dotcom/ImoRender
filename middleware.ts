@@ -36,7 +36,8 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (session && req.nextUrl.pathname.startsWith('/auth/')) {
+  // Não redirecionar o callback — precisa de correr para estabelecer a sessão
+  if (session && req.nextUrl.pathname.startsWith('/auth/') && !req.nextUrl.pathname.startsWith('/auth/callback')) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/dashboard'
     return NextResponse.redirect(redirectUrl)
