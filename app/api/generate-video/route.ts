@@ -164,7 +164,7 @@ export async function POST(request: Request) {
         prompt_otimizado: promptOtimizado,
         duracao: duracaoNum,
         creditos_gastos: creditosNecessarios,
-        qualidade: ['pro', 'agency', 'enterprise'].includes(profile.plano) ? 'pro' : 'std',
+        qualidade: ['starter', 'team', 'agency'].includes(profile.plano) ? 'pro' : 'std',
         modo,
         aspect_ratio: aspectRatio,
         modelo_usado: falModel,

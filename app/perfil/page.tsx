@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { PLANO_LABELS, PLANO_TARGET, PLANO_WAIT } from '@/lib/creditos'
 
 export default async function PerfilPage() {
   const supabase = createClient()
@@ -14,11 +15,13 @@ export default async function PerfilPage() {
   const videosCompletos = statsData?.filter(v => v.status === 'completed').length || 0
   const creditosGastos = statsData?.reduce((acc, v) => acc + (v.creditos_gastos || 0), 0) || 0
 
-  const planoLabel: Record<string, string> = { free: 'Free', starter: 'Starter', pro: 'Pro', agency: 'Agency', enterprise: 'Enterprise' }
+  const plano = profile?.plano || 'free'
+  const isPaid = ['starter', 'team', 'agency'].includes(plano)
+  const isAgency = plano === 'agency'
+  const creditosPct = profile ? Math.min(100, Math.round((profile.creditos / profile.creditos_total) * 100)) : 0
 
   return (
     <div style={{ background: '#F8F9FA', minHeight: '100vh' }}>
-      {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50" style={{ background: '#FFFFFF', borderBottom: '1px solid #E5E7EB', boxShadow: '0 1px 8px rgba(0,0,0,0.06)' }}>
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -51,7 +54,9 @@ export default async function PerfilPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-sm" style={{ color: '#6B7280' }}>Membro desde</span>
-              <span className="text-sm font-semibold" style={{ color: '#1A1A2E' }}>{profile?.created_at ? new Date(profile.created_at).toLocaleDateString('pt-PT') : '—'}</span>
+              <span className="text-sm font-semibold" style={{ color: '#1A1A2E' }}>
+                {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('pt-PT') : '—'}
+              </span>
             </div>
           </div>
         </div>
@@ -60,34 +65,54 @@ export default async function PerfilPage() {
         <div className="p-6 rounded-2xl mb-5" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
           <h2 className="text-xs font-semibold mb-4 uppercase tracking-wider" style={{ color: '#9CA3AF' }}>Plano e créditos</h2>
           <div className="space-y-3">
-            <div className="flex justify-between">
+            <div className="flex justify-between items-start">
               <span className="text-sm" style={{ color: '#6B7280' }}>Plano atual</span>
-              <span className="text-sm font-bold" style={{ color: '#00D4AA' }}>{planoLabel[profile?.plano || 'free']}</span>
+              <div className="text-right">
+                <div className="text-sm font-bold" style={{ color: '#00D4AA' }}>{PLANO_LABELS[plano] || plano}</div>
+                <div className="text-xs mt-0.5" style={{ color: '#9CA3AF' }}>{PLANO_TARGET[plano] || ''}</div>
+              </div>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm" style={{ color: '#6B7280' }}>Tempo de espera</span>
+              <span className="text-sm font-semibold" style={{ color: '#374151' }}>{PLANO_WAIT[plano] || '—'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm" style={{ color: '#6B7280' }}>Créditos disponíveis</span>
-              <span className="text-sm font-bold" style={{ color: '#00D4AA' }}>{profile?.creditos || 0}</span>
+              <span className="text-sm font-bold" style={{ color: '#00D4AA' }}>{profile?.creditos?.toLocaleString('pt-PT') || 0}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm" style={{ color: '#6B7280' }}>Total do plano</span>
-              <span className="text-sm font-semibold" style={{ color: '#1A1A2E' }}>{profile?.creditos_total || 0} créditos/mês</span>
+              <span className="text-sm font-semibold" style={{ color: '#1A1A2E' }}>{profile?.creditos_total?.toLocaleString('pt-PT') || 0} cr/mês</span>
             </div>
             {profile && (
               <div>
                 <div className="flex justify-between text-xs mb-1.5" style={{ color: '#9CA3AF' }}>
                   <span>Utilização</span>
-                  <span>{Math.round(((profile.creditos_total - profile.creditos) / profile.creditos_total) * 100)}%</span>
+                  <span>{100 - creditosPct}% usados</span>
                 </div>
                 <div className="h-2 rounded-full overflow-hidden" style={{ background: '#F1F3F5' }}>
-                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.round((profile.creditos / profile.creditos_total) * 100)}%`, background: '#00D4AA' }} />
+                  <div className="h-full rounded-full transition-all"
+                    style={{ width: `${creditosPct}%`, background: creditosPct < 20 ? '#EF4444' : '#00D4AA' }} />
                 </div>
               </div>
             )}
           </div>
-          <div className="mt-4 pt-4" style={{ borderTop: '1px solid #E5E7EB' }}>
-            <Link href="/planos" className="text-sm font-semibold" style={{ color: '#00D4AA' }}>
-              Ver planos disponíveis →
-            </Link>
+
+          <div className="mt-5 pt-4 flex flex-col sm:flex-row gap-3" style={{ borderTop: '1px solid #E5E7EB' }}>
+            {!isAgency && (
+              <Link href="/planos"
+                className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-center transition-all hover:opacity-90"
+                style={{ background: '#00D4AA', color: '#FFFFFF' }}>
+                Fazer upgrade →
+              </Link>
+            )}
+            {isPaid && (
+              <Link href="/planos"
+                className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-center"
+                style={{ background: '#F1F3F5', color: '#374151', border: '1px solid #E5E7EB' }}>
+                Comprar créditos extra
+              </Link>
+            )}
           </div>
         </div>
 
@@ -98,7 +123,7 @@ export default async function PerfilPage() {
             {[
               { label: 'Vídeos criados', value: totalVideos },
               { label: 'Concluídos', value: videosCompletos },
-              { label: 'Créditos gastos', value: creditosGastos },
+              { label: 'Créditos gastos', value: creditosGastos.toLocaleString('pt-PT') },
             ].map((s, i) => (
               <div key={i} className="text-center p-4 rounded-xl" style={{ background: '#F8F9FA', border: '1px solid #E5E7EB' }}>
                 <div className="text-2xl font-bold mb-1" style={{ color: '#00D4AA' }}>{s.value}</div>

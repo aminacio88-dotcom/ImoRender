@@ -1,10 +1,11 @@
 import type { Modo } from './types'
 
+// x10 cosmético: Standard 10s = 100cr, Pro 10s = 200cr
 const TAXAS: Record<Modo, number> = {
-  standard:     1.0,
-  pro:          2.0,
-  antes_depois: 1.6,
-  video_video:  1.2,
+  standard:     10,
+  pro:          20,
+  antes_depois: 16,
+  video_video:  12,
 }
 
 export function calcularCreditos(modo: Modo, segundos: number): number {
@@ -40,4 +41,29 @@ export const MODO_BADGE_TEXT: Record<Modo, string> = {
   pro:          '#16A34A',
   antes_depois: '#CA8A04',
   video_video:  '#DC2626',
+}
+
+export const PLANO_LABELS: Record<string, string> = {
+  free:       'Free',
+  starter:    'Starter',
+  team:       'Team',
+  agency:     'Agency',
+  pro:        'Pro',
+  enterprise: 'Enterprise',
+}
+
+export const PLANO_WAIT: Record<string, string> = {
+  free:       'até 15 min',
+  starter:    'até 5 min',
+  team:       'até 2 min',
+  agency:     'prioritário',
+  pro:        'até 5 min',
+  enterprise: 'prioritário',
+}
+
+export const PLANO_TARGET: Record<string, string> = {
+  free:    'Para experimentar',
+  starter: 'Para consultores individuais',
+  team:    'Para equipas pequenas',
+  agency:  'Para agências médias e grandes',
 }

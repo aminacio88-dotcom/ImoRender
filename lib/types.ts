@@ -1,4 +1,4 @@
-export type Plano = 'free' | 'starter' | 'pro' | 'agency' | 'enterprise'
+export type Plano = 'free' | 'starter' | 'team' | 'agency' | 'pro' | 'enterprise'
 export type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type Qualidade = 'std' | 'pro'
 export type Modo = 'standard' | 'pro' | 'antes_depois' | 'video_video'
