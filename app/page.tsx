@@ -39,20 +39,20 @@ const PLANOS = [
     ],
   },
   {
-    id: 'team', nome: 'Team', preco: 59.99, creditos: 4000, popular: true,
+    id: 'team', nome: 'Team', preco: 59.99, creditos: 3200, popular: true,
     descricao: 'Para equipas de até 15 consultores',
     wait: 'até 2 min',
     watermark: false,
     features: [
       '4.000 créditos/mês',
-      '~40 vídeos Pro de 10s/mês',
+      '~32 vídeos Pro de 10s/mês',
       'Tempo de espera até 2 min',
       'Sem marca de água',
       'Compra de créditos extra',
     ],
   },
   {
-    id: 'agency', nome: 'Agency', preco: 169.99, creditos: 12000, popular: false,
+    id: 'agency', nome: 'Agency', preco: 179.99, creditos: 12000, popular: false,
     descricao: 'Para agências com 15 a 50 consultores',
     wait: 'prioritário',
     watermark: false,
