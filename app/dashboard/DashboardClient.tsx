@@ -17,9 +17,9 @@ const MODOS = [
 ]
 
 const FORMATOS: { id: AspectRatio; label: string; desc: string; w: number; h: number }[] = [
-  { id: '16:9', label: '16:9', desc: 'Horizontal — Para site e apresentações', w: 16, h: 9 },
-  { id: '9:16', label: '9:16', desc: 'Vertical — Para Instagram Stories e Reels', w: 9, h: 16 },
-  { id: '1:1',  label: '1:1',  desc: 'Quadrado — Para feed Instagram', w: 1, h: 1 },
+  { id: '16:9', label: '16:9', desc: 'Horizontal', w: 16, h: 9 },
+  { id: '9:16', label: '9:16', desc: 'Vertical', w: 9, h: 16 },
+  { id: '1:1',  label: '1:1',  desc: 'Quadrado', w: 1, h: 1 },
 ]
 
 const PLACEHOLDERS: Record<Modo, string> = {
@@ -36,13 +36,11 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   const [profile, setProfile] = useState(initialProfile)
   const [videos, setVideos] = useState(initialVideos)
 
-  // Form state
   const [modo, setModo] = useState<Modo>('standard')
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('16:9')
   const [duracao, setDuracao] = useState(5)
   const [prompt, setPrompt] = useState('')
 
-  // Upload state
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [tailImageFile, setTailImageFile] = useState<File | null>(null)
@@ -61,14 +59,12 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   const creditosNecessarios = calcularCreditos(modo, duracao)
   const creditosInsuficientes = (profile?.creditos ?? 0) < creditosNecessarios
 
-  // Reset uploads ao mudar modo
   useEffect(() => {
     setImageFile(null); setImagePreview(null)
     setTailImageFile(null); setTailImagePreview(null)
     setVideoFile(null); setError('')
   }, [modo])
 
-  // Polling
   useEffect(() => {
     if (!pollingId) return
     const interval = setInterval(async () => {
@@ -91,7 +87,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
   function handleImageFile(file: File, type: 'main' | 'tail') {
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('Formato de ficheiro não suportado. Aceites: JPG, PNG, WEBP'); return
+      setError('Formato não suportado. Aceites: JPG, PNG, WEBP'); return
     }
     if (file.size > 10 * 1024 * 1024) { setError('A imagem não pode ter mais de 10MB.'); return }
     setError('')
@@ -105,7 +101,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
   function handleVideoFile(file: File) {
     if (!['video/mp4', 'video/quicktime'].includes(file.type)) {
-      setError('Formato de vídeo não suportado. Aceites: MP4, MOV (máx. 50MB)'); return
+      setError('Formato não suportado. Aceites: MP4, MOV (máx. 50MB)'); return
     }
     if (file.size > 50 * 1024 * 1024) { setError('O vídeo não pode ter mais de 50MB.'); return }
     setError(''); setVideoFile(file)
@@ -122,10 +118,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   function fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
-      reader.onload = e => {
-        const result = e.target?.result as string
-        resolve(result.split(',')[1])
-      }
+      reader.onload = e => { resolve((e.target?.result as string).split(',')[1]) }
       reader.onerror = reject
       reader.readAsDataURL(file)
     })
@@ -188,27 +181,27 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
      modo === 'antes_depois' ? (!!imageFile && !!tailImageFile) : !!videoFile)
 
   return (
-    <div style={{ background: '#0a0a0f', minHeight: '100vh', color: '#fff' }}>
+    <div style={{ background: '#F8F9FA', minHeight: '100vh' }}>
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5" style={{ background: 'rgba(10,10,15,0.95)', backdropFilter: 'blur(12px)' }}>
+      <nav className="fixed top-0 left-0 right-0 z-50" style={{ background: '#FFFFFF', borderBottom: '1px solid #E5E7EB', boxShadow: '0 1px 8px rgba(0,0,0,0.06)' }}>
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#00d4aa,#00b894)' }}>
-              <span className="font-bold text-sm" style={{ color: '#000' }}>IR</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00D4AA, #00B894)' }}>
+              <span className="font-bold text-sm text-white">IR</span>
             </div>
-            <span className="font-semibold text-lg">ImoRender</span>
+            <span className="font-bold text-lg" style={{ color: '#1A1A2E' }}>ImoRender</span>
           </Link>
           <div className="flex items-center gap-3">
             {profile && (
               <>
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(0,212,170,0.1)', border: '1px solid rgba(0,212,170,0.2)' }}>
-                  <span className="text-xs font-semibold" style={{ color: '#00d4aa' }}>{profile.creditos} créditos</span>
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: '#F0FDF9', border: '1px solid #00D4AA' }}>
+                  <span className="text-xs font-bold" style={{ color: '#00B894' }}>{profile.creditos} créditos</span>
                 </div>
-                <Link href="/planos" className="text-xs px-2.5 py-1 rounded-md capitalize font-medium" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.7)' }}>{profile.plano}</Link>
-                <Link href="/perfil" className="text-sm hidden sm:block" style={{ color: 'rgba(255,255,255,0.6)' }}>{profile.nome}</Link>
+                <Link href="/planos" className="text-xs px-2.5 py-1 rounded-md font-semibold capitalize" style={{ background: '#F1F3F5', color: '#374151', border: '1px solid #E5E7EB' }}>{profile.plano}</Link>
+                <Link href="/perfil" className="text-sm hidden sm:block font-medium" style={{ color: '#6B7280' }}>{profile.nome}</Link>
               </>
             )}
-            <button onClick={handleLogout} className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Sair</button>
+            <button onClick={handleLogout} className="text-sm font-medium" style={{ color: '#9CA3AF' }}>Sair</button>
           </div>
         </div>
       </nav>
@@ -216,19 +209,19 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
       <div className="pt-24 pb-16 px-4 max-w-4xl mx-auto">
         {/* Boas-vindas */}
         {profile && (
-          <div className="mb-6 p-5 rounded-2xl" style={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="mb-6 p-5 rounded-2xl" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-xl font-semibold mb-1">Olá, {profile.nome}! 👋</h1>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  Plano <span className="capitalize font-medium" style={{ color: '#00d4aa' }}>{profile.plano}</span>
+                <h1 className="text-xl font-bold mb-1" style={{ color: '#1A1A2E' }}>Olá, {profile.nome}! 👋</h1>
+                <p className="text-sm" style={{ color: '#6B7280' }}>
+                  Plano <span className="capitalize font-semibold" style={{ color: '#00D4AA' }}>{profile.plano}</span>
                 </p>
               </div>
               <div className="sm:text-right">
-                <div className="text-3xl font-bold" style={{ color: '#00d4aa' }}>{profile.creditos}</div>
-                <div className="text-xs mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>créditos disponíveis</div>
-                <div className="h-1.5 rounded-full w-32 sm:ml-auto overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                  <div className="h-full rounded-full transition-all" style={{ width: `${creditosPct}%`, background: creditosPct < 20 ? '#ef4444' : '#00d4aa' }} />
+                <div className="text-3xl font-bold" style={{ color: '#00D4AA' }}>{profile.creditos}</div>
+                <div className="text-xs mb-2" style={{ color: '#9CA3AF' }}>créditos disponíveis</div>
+                <div className="h-1.5 rounded-full w-32 sm:ml-auto overflow-hidden" style={{ background: '#F1F3F5' }}>
+                  <div className="h-full rounded-full transition-all" style={{ width: `${creditosPct}%`, background: creditosPct < 20 ? '#EF4444' : '#00D4AA' }} />
                 </div>
               </div>
             </div>
@@ -236,24 +229,24 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
         )}
 
         {/* Formulário */}
-        <div className="mb-10 p-6 rounded-2xl" style={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <h2 className="text-lg font-semibold mb-6">Gerar novo vídeo</h2>
+        <div className="mb-10 p-6 rounded-2xl" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+          <h2 className="text-lg font-bold mb-6" style={{ color: '#1A1A2E' }}>Gerar novo vídeo</h2>
           <form onSubmit={handleGenerate} className="space-y-6">
 
             {/* Passo 1 — Modo */}
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: 'rgba(255,255,255,0.8)' }}>1. Escolhe o modo</label>
+              <label className="block text-sm font-semibold mb-3" style={{ color: '#374151' }}>1. Escolhe o modo</label>
               <div className="grid grid-cols-2 gap-3">
                 {MODOS.map(m => (
                   <button key={m.id} type="button" onClick={() => setModo(m.id)}
                     className="p-4 rounded-xl text-left transition-all"
                     style={{
-                      background: modo === m.id ? 'rgba(0,212,170,0.1)' : 'rgba(255,255,255,0.03)',
-                      border: modo === m.id ? '1.5px solid #00d4aa' : '1.5px solid rgba(255,255,255,0.08)',
+                      background: modo === m.id ? '#F0FDF9' : '#F8F9FA',
+                      border: modo === m.id ? '2px solid #00D4AA' : '2px solid #E5E7EB',
                     }}>
                     <div className="text-2xl mb-2">{m.icon}</div>
-                    <div className="font-semibold text-sm mb-1">{m.nome}</div>
-                    <div className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>{m.desc}</div>
+                    <div className="font-semibold text-sm mb-1" style={{ color: '#1A1A2E' }}>{m.nome}</div>
+                    <div className="text-xs leading-relaxed" style={{ color: '#6B7280' }}>{m.desc}</div>
                   </button>
                 ))}
               </div>
@@ -261,11 +254,12 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
             {/* Passo 2 — Upload */}
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: 'rgba(255,255,255,0.8)' }}>2. {modo === 'video_video' ? 'Carrega o vídeo' : modo === 'antes_depois' ? 'Carrega as duas fotos' : 'Carrega a foto'}</label>
+              <label className="block text-sm font-semibold mb-3" style={{ color: '#374151' }}>
+                2. {modo === 'video_video' ? 'Carrega o vídeo' : modo === 'antes_depois' ? 'Carrega as duas fotos' : 'Carrega a foto'}
+              </label>
 
               {(modo === 'standard' || modo === 'pro') && (
-                <UploadZone
-                  accept="image" preview={imagePreview}
+                <UploadZone accept="image" preview={imagePreview}
                   dragOver={dragOver === 'main'}
                   onDragOver={() => setDragOver('main')} onDragLeave={() => setDragOver(null)}
                   onDrop={e => handleDrop(e, 'main')}
@@ -277,7 +271,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
               {modo === 'antes_depois' && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs mb-2 text-center" style={{ color: 'rgba(255,255,255,0.5)' }}>Foto Inicial</p>
+                    <p className="text-xs mb-2 text-center font-medium" style={{ color: '#6B7280' }}>Foto Inicial</p>
                     <UploadZone accept="image" preview={imagePreview}
                       dragOver={dragOver === 'main'}
                       onDragOver={() => setDragOver('main')} onDragLeave={() => setDragOver(null)}
@@ -287,7 +281,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                     />
                   </div>
                   <div>
-                    <p className="text-xs mb-2 text-center" style={{ color: 'rgba(255,255,255,0.5)' }}>Foto Final</p>
+                    <p className="text-xs mb-2 text-center font-medium" style={{ color: '#6B7280' }}>Foto Final</p>
                     <UploadZone accept="image" preview={tailImagePreview}
                       dragOver={dragOver === 'tail'}
                       onDragOver={() => setDragOver('tail')} onDragLeave={() => setDragOver(null)}
@@ -319,25 +313,25 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
             {/* Passo 3 — Formato */}
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: 'rgba(255,255,255,0.8)' }}>3. Formato do vídeo</label>
+              <label className="block text-sm font-semibold mb-3" style={{ color: '#374151' }}>3. Formato do vídeo</label>
               <div className="flex gap-3">
                 {FORMATOS.map(f => (
                   <button key={f.id} type="button" onClick={() => setAspectRatio(f.id)}
                     className="flex-1 p-3 rounded-xl text-center transition-all"
                     style={{
-                      background: aspectRatio === f.id ? 'rgba(0,212,170,0.1)' : 'rgba(255,255,255,0.03)',
-                      border: aspectRatio === f.id ? '1.5px solid #00d4aa' : '1.5px solid rgba(255,255,255,0.08)',
+                      background: aspectRatio === f.id ? '#F0FDF9' : '#F8F9FA',
+                      border: aspectRatio === f.id ? '2px solid #00D4AA' : '2px solid #E5E7EB',
                     }}>
                     <div className="flex items-center justify-center mb-2">
                       <div className="rounded" style={{
                         width: `${Math.round(28 * (f.w / Math.max(f.w, f.h)))}px`,
                         height: `${Math.round(28 * (f.h / Math.max(f.w, f.h)))}px`,
-                        background: aspectRatio === f.id ? '#00d4aa' : 'rgba(255,255,255,0.2)',
+                        background: aspectRatio === f.id ? '#00D4AA' : '#D1D5DB',
                         minWidth: '10px', minHeight: '10px',
                       }} />
                     </div>
-                    <div className="font-semibold text-sm">{f.label}</div>
-                    <div className="text-xs mt-0.5 leading-tight" style={{ color: 'rgba(255,255,255,0.4)' }}>{f.desc}</div>
+                    <div className="font-bold text-sm" style={{ color: '#1A1A2E' }}>{f.label}</div>
+                    <div className="text-xs mt-0.5" style={{ color: '#9CA3AF' }}>{f.desc}</div>
                   </button>
                 ))}
               </div>
@@ -346,52 +340,52 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
             {/* Passo 4 — Duração */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>4. Duração</label>
-                <span className="text-sm font-semibold" style={{ color: '#00d4aa' }}>{duracao} segundos</span>
+                <label className="text-sm font-semibold" style={{ color: '#374151' }}>4. Duração</label>
+                <span className="text-sm font-bold" style={{ color: '#00D4AA' }}>{duracao} segundos</span>
               </div>
               <input type="range" min={1} max={30} step={1} value={duracao}
                 onChange={e => setDuracao(Number(e.target.value))}
-                className="w-full" style={{ accentColor: '#00d4aa' }} />
-              <div className="flex justify-between text-xs mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                className="w-full" style={{ accentColor: '#00D4AA' }} />
+              <div className="flex justify-between text-xs mt-1" style={{ color: '#9CA3AF' }}>
                 <span>1s</span><span>30s</span>
               </div>
             </div>
 
             {/* Passo 5 — Descrição */}
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(255,255,255,0.8)' }}>5. Descreve o resultado que pretendes</label>
+              <label className="block text-sm font-semibold mb-2" style={{ color: '#374151' }}>5. Descreve o resultado que pretendes</label>
               <textarea value={prompt} onChange={e => setPrompt(e.target.value)}
                 required rows={3} placeholder={PLACEHOLDERS[modo]}
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none transition-all"
-                style={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                onFocus={e => e.target.style.borderColor = '#00d4aa'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', color: '#1A1A2E' }}
+                onFocus={e => e.target.style.borderColor = '#00D4AA'}
+                onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
             </div>
 
             {/* Resumo */}
-            <div className="p-4 rounded-xl" style={{ background: '#0a0a0f', border: `1px solid ${creditosInsuficientes ? 'rgba(239,68,68,0.3)' : 'rgba(0,212,170,0.2)'}` }}>
+            <div className="p-4 rounded-xl" style={{ background: '#F0FDF9', border: `1px solid ${creditosInsuficientes ? '#FECACA' : '#00D4AA'}` }}>
               <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                <div style={{ color: 'rgba(255,255,255,0.5)' }}>Modo</div>
-                <div className="font-medium text-right">{MODO_LABELS[modo]}</div>
-                <div style={{ color: 'rgba(255,255,255,0.5)' }}>Formato</div>
-                <div className="font-medium text-right">{aspectRatio}</div>
-                <div style={{ color: 'rgba(255,255,255,0.5)' }}>Duração</div>
-                <div className="font-medium text-right">{duracao}s</div>
-                <div style={{ color: 'rgba(255,255,255,0.5)' }}>Créditos disponíveis</div>
-                <div className="font-medium text-right">{profile?.creditos ?? 0}</div>
+                <div style={{ color: '#6B7280' }}>Modo</div>
+                <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>{MODO_LABELS[modo]}</div>
+                <div style={{ color: '#6B7280' }}>Formato</div>
+                <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>{aspectRatio}</div>
+                <div style={{ color: '#6B7280' }}>Duração</div>
+                <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>{duracao}s</div>
+                <div style={{ color: '#6B7280' }}>Créditos disponíveis</div>
+                <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>{profile?.creditos ?? 0}</div>
               </div>
-              <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.7)' }}>Créditos a consumir</span>
-                <span className="text-xl font-bold" style={{ color: creditosInsuficientes ? '#ef4444' : '#00d4aa' }}>
+              <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid #D1FAE5' }}>
+                <span className="text-sm font-semibold" style={{ color: '#374151' }}>Créditos a consumir</span>
+                <span className="text-xl font-bold" style={{ color: creditosInsuficientes ? '#DC2626' : '#00D4AA' }}>
                   {creditosNecessarios} créditos
                 </span>
               </div>
               {creditosInsuficientes && (
                 <div className="mt-3 flex items-center justify-between">
-                  <p className="text-xs" style={{ color: '#fca5a5' }}>
-                    Precisas de {creditosNecessarios} créditos e tens {profile?.creditos ?? 0} disponíveis.
+                  <p className="text-xs" style={{ color: '#DC2626' }}>
+                    Precisas de {creditosNecessarios} créditos e tens {profile?.creditos ?? 0}.
                   </p>
-                  <Link href="/planos" className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(239,68,68,0.15)', color: '#fca5a5' }}>
+                  <Link href="/planos" className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}>
                     Comprar créditos →
                   </Link>
                 </div>
@@ -399,13 +393,13 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
             </div>
 
             {error && (
-              <div className="px-4 py-3 rounded-xl text-sm" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}>
+              <div className="px-4 py-3 rounded-xl text-sm" style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626' }}>
                 {error}
               </div>
             )}
 
             {loading && (
-              <div className="px-4 py-3 rounded-xl text-sm flex items-center gap-3" style={{ background: 'rgba(0,212,170,0.08)', border: '1px solid rgba(0,212,170,0.2)', color: '#00d4aa' }}>
+              <div className="px-4 py-3 rounded-xl text-sm flex items-center gap-3" style={{ background: '#F0FDF9', border: '1px solid #00D4AA', color: '#00B894' }}>
                 <svg className="w-4 h-4 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -415,8 +409,12 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
             )}
 
             <button type="submit" disabled={!canGenerate}
-              className="w-full py-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
-              style={{ background: canGenerate ? '#00d4aa' : 'rgba(255,255,255,0.08)', color: canGenerate ? '#000' : 'rgba(255,255,255,0.3)', cursor: canGenerate ? 'pointer' : 'not-allowed' }}>
+              className="w-full py-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+              style={{
+                background: canGenerate ? '#00D4AA' : '#E5E7EB',
+                color: canGenerate ? '#FFFFFF' : '#9CA3AF',
+                cursor: canGenerate ? 'pointer' : 'not-allowed',
+              }}>
               {loading ? (
                 <>
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -432,11 +430,11 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
         {/* Histórico */}
         <div>
-          <h2 className="text-lg font-semibold mb-4">Os teus vídeos</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#1A1A2E' }}>Os teus vídeos</h2>
           {videos.length === 0 ? (
-            <div className="text-center py-16 rounded-2xl" style={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="text-center py-16 rounded-2xl" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB' }}>
               <div className="text-4xl mb-3">🎬</div>
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Ainda não geraste nenhum vídeo.</p>
+              <p className="text-sm" style={{ color: '#9CA3AF' }}>Ainda não geraste nenhum vídeo.</p>
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -449,7 +447,6 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   )
 }
 
-// Upload Zone Component
 function UploadZone({ accept, preview, videoName, dragOver, onDragOver, onDragLeave, onDrop, onClick, onClear }: {
   accept: 'image' | 'video'
   preview: string | null
@@ -466,8 +463,8 @@ function UploadZone({ accept, preview, videoName, dragOver, onDragOver, onDragLe
       className="relative rounded-xl border-2 border-dashed transition-all cursor-pointer"
       style={{
         minHeight: preview ? 'auto' : '140px',
-        borderColor: dragOver ? '#00d4aa' : 'rgba(255,255,255,0.1)',
-        background: dragOver ? 'rgba(0,212,170,0.05)' : 'rgba(255,255,255,0.02)',
+        borderColor: dragOver ? '#00D4AA' : '#E5E7EB',
+        background: dragOver ? '#F0FDF9' : '#F8F9FA',
       }}
       onDragOver={e => { e.preventDefault(); onDragOver() }}
       onDragLeave={onDragLeave}
@@ -480,22 +477,22 @@ function UploadZone({ accept, preview, videoName, dragOver, onDragOver, onDragLe
           <img src={preview} alt="Preview" className="w-full rounded-xl object-cover" style={{ maxHeight: '200px' }} />
           <button type="button" onClick={e => { e.stopPropagation(); onClear() }}
             className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-            style={{ background: 'rgba(0,0,0,0.7)', color: '#fff' }}>✕</button>
+            style={{ background: 'rgba(0,0,0,0.6)', color: '#fff' }}>✕</button>
         </div>
       ) : videoName ? (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <div className="text-3xl mb-2">🎬</div>
-          <p className="text-sm font-medium" style={{ color: '#00d4aa' }}>{videoName}</p>
+          <p className="text-sm font-semibold" style={{ color: '#00D4AA' }}>{videoName}</p>
           <button type="button" onClick={e => { e.stopPropagation(); onClear() }}
-            className="mt-2 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Remover</button>
+            className="mt-2 text-xs" style={{ color: '#9CA3AF' }}>Remover</button>
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <div className="text-3xl mb-2">{accept === 'video' ? '🎬' : '📷'}</div>
-          <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.7)' }}>
+          <p className="text-sm font-semibold" style={{ color: '#374151' }}>
             {accept === 'video' ? 'Arrasta um vídeo ou clica para selecionar' : 'Arrasta uma foto ou clica para selecionar'}
           </p>
-          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
             {accept === 'video' ? 'MP4, MOV · máx. 50MB' : 'JPG, PNG, WEBP · máx. 10MB'}
           </p>
         </div>
@@ -504,60 +501,60 @@ function UploadZone({ accept, preview, videoName, dragOver, onDragOver, onDragLe
   )
 }
 
-// Video Card Component
 function VideoCard({ video }: { video: Video }) {
-  const statusColor: Record<string, string> = { completed: '#00d4aa', processing: '#f59e0b', pending: '#6b7280', failed: '#ef4444' }
+  const statusColor: Record<string, string> = { completed: '#16A34A', processing: '#CA8A04', pending: '#6B7280', failed: '#DC2626' }
+  const statusBg: Record<string, string>    = { completed: '#F0FDF4', processing: '#FEF9C3', pending: '#F1F3F5', failed: '#FEF2F2' }
   const statusLabel: Record<string, string> = { completed: 'Concluído', processing: 'A processar', pending: 'Na fila', failed: 'Erro' }
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.06)' }}>
-      <div className="aspect-video flex items-center justify-center" style={{ background: '#16213e' }}>
+    <div className="rounded-2xl overflow-hidden" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+      <div className="aspect-video flex items-center justify-center" style={{ background: '#F1F3F5' }}>
         {video.status === 'completed' && video.video_url ? (
           <video src={video.video_url} controls className="w-full h-full object-cover" />
         ) : video.status === 'processing' || video.status === 'pending' ? (
           <div className="flex flex-col items-center gap-2">
-            <svg className="w-8 h-8 animate-spin" style={{ color: '#00d4aa' }} fill="none" viewBox="0 0 24 24">
+            <svg className="w-8 h-8 animate-spin" style={{ color: '#00D4AA' }} fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>A processar...</span>
+            <span className="text-xs" style={{ color: '#9CA3AF' }}>A processar...</span>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-1">
             <div className="text-2xl">❌</div>
-            <span className="text-xs" style={{ color: '#fca5a5' }}>Créditos devolvidos</span>
+            <span className="text-xs font-medium" style={{ color: '#DC2626' }}>Créditos devolvidos</span>
           </div>
         )}
       </div>
       <div className="p-4">
         <div className="flex items-start gap-2 mb-2">
-          <p className="flex-1 text-sm leading-snug line-clamp-2" style={{ color: 'rgba(255,255,255,0.8)' }}>{video.prompt_original}</p>
-          <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-medium"
-            style={{ background: statusColor[video.status] + '20', color: statusColor[video.status] }}>
+          <p className="flex-1 text-sm leading-snug line-clamp-2" style={{ color: '#374151' }}>{video.prompt_original}</p>
+          <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-semibold"
+            style={{ background: statusBg[video.status], color: statusColor[video.status] }}>
             {statusLabel[video.status]}
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 mb-2">
+        <div className="flex flex-wrap items-center gap-2 mb-3">
           {video.modo && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
               style={{ background: MODO_BADGE_COLORS[video.modo as Modo], color: MODO_BADGE_TEXT[video.modo as Modo] }}>
               {MODO_LABELS[video.modo as Modo]}
             </span>
           )}
           {video.aspect_ratio && (
-            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}>
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: '#F1F3F5', color: '#6B7280' }}>
               {video.aspect_ratio}
             </span>
           )}
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <span className="text-xs" style={{ color: '#9CA3AF' }}>
             {video.duracao}s · {video.creditos_gastos}cr · {new Date(video.created_at).toLocaleDateString('pt-PT')}
           </span>
           {video.status === 'completed' && video.video_url && (
             <a href={video.video_url} download target="_blank" rel="noopener noreferrer"
-              className="text-xs font-medium px-3 py-1.5 rounded-lg"
-              style={{ background: 'rgba(0,212,170,0.15)', color: '#00d4aa' }}>
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg"
+              style={{ background: '#F0FDF9', color: '#00B894', border: '1px solid #00D4AA' }}>
               ⬇ Download
             </a>
           )}

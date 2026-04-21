@@ -29,15 +29,15 @@ export const MODO_LABELS: Record<Modo, string> = {
 }
 
 export const MODO_BADGE_COLORS: Record<Modo, string> = {
-  standard:     'rgba(0,212,170,0.15)',
-  pro:          'rgba(168,85,247,0.15)',
-  antes_depois: 'rgba(59,130,246,0.15)',
-  video_video:  'rgba(245,158,11,0.15)',
+  standard:     '#E0F2FE',
+  pro:          '#F0FDF4',
+  antes_depois: '#FEF9C3',
+  video_video:  '#FEF2F2',
 }
 
 export const MODO_BADGE_TEXT: Record<Modo, string> = {
-  standard:     '#00d4aa',
-  pro:          '#a855f7',
-  antes_depois: '#3b82f6',
-  video_video:  '#f59e0b',
+  standard:     '#0284C7',
+  pro:          '#16A34A',
+  antes_depois: '#CA8A04',
+  video_video:  '#DC2626',
 }
