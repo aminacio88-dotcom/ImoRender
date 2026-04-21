@@ -1,6 +1,8 @@
-export type Plano = 'free' | 'starter' | 'pro' | 'agency'
+export type Plano = 'free' | 'starter' | 'pro' | 'agency' | 'enterprise'
 export type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type Qualidade = 'std' | 'pro'
+export type Modo = 'standard' | 'pro' | 'antes_depois' | 'video_video'
+export type AspectRatio = '16:9' | '9:16' | '1:1'
 
 export interface Profile {
   id: string
@@ -21,7 +23,13 @@ export interface Video {
   duracao: number
   creditos_gastos: number
   qualidade: Qualidade
+  modo: Modo
+  aspect_ratio: AspectRatio
+  modelo_usado: string | null
+  tail_image_url: string | null
+  video_input_url: string | null
   video_url: string | null
+  fal_request_id: string | null
   status: VideoStatus
   created_at: string
 }
@@ -32,4 +40,11 @@ export interface PlanoDB {
   preco: number
   creditos_mensais: number
   qualidade: Qualidade
+}
+
+export interface PackCreditos {
+  id: string
+  nome: string
+  creditos: number
+  preco: number
 }
