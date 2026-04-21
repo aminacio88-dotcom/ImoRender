@@ -18,7 +18,7 @@ const PLANOS = [
     ],
   },
   {
-    id: 'starter', nome: 'Starter', preco: 24.99, creditos: 1000, popular: false,
+    id: 'starter', nome: 'Starter', preco: 20.99, creditos: 1000, popular: false,
     target: 'Para consultores individuais',
     wait: PLANO_WAIT.starter,
     watermark: false,
