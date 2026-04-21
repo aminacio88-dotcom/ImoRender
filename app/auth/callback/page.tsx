@@ -51,7 +51,7 @@ export default function AuthCallbackPage() {
           return
         }
 
-        // Se não há token nem code, verificar se já tem sessão
+        // Sem token nem code — verificar sessão existente
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
           router.push('/dashboard')
@@ -68,16 +68,19 @@ export default function AuthCallbackPage() {
   }, [router, supabase])
 
   return (
-    <div style={{ background: '#0a0a0f', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ background: 'linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 100%)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ marginBottom: '16px' }}>
-          <svg style={{ width: '40px', height: '40px', color: '#00d4aa', animation: 'spin 1s linear infinite' }}
-            className="animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
+        <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #00D4AA, #00B894)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+            <span style={{ fontWeight: 'bold', color: '#fff', fontSize: '16px' }}>IR</span>
+          </div>
         </div>
-        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '15px' }}>{message}</p>
+        <svg style={{ width: '32px', height: '32px', color: '#00D4AA', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }}
+          className="animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        <p style={{ color: '#374151', fontSize: '15px', fontWeight: 500 }}>{message}</p>
       </div>
     </div>
   )
