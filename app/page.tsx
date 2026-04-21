@@ -13,14 +13,15 @@ const fadeUp: Variants = {
 }
 
 const PLANOS = [
-  { id: 'free', nome: 'Free', preco: 0, creditos: 10, qualidade: 'STD', popular: false, features: ['10 créditos/mês', 'Qualidade Standard', 'Vídeos até 20s', 'Download em MP4'] },
-  { id: 'starter', nome: 'Starter', preco: 19.99, creditos: 150, qualidade: 'STD', popular: false, features: ['150 créditos/mês', 'Qualidade Standard', 'Vídeos até 20s', 'Download em MP4', 'Suporte por email'] },
-  { id: 'pro', nome: 'Pro', preco: 39.99, creditos: 400, qualidade: 'PRO', popular: true, features: ['400 créditos/mês', 'Qualidade PRO', 'Vídeos até 20s', 'Download em MP4', 'Suporte prioritário', 'Prompts otimizados'] },
-  { id: 'agency', nome: 'Agency', preco: 79.99, creditos: 900, qualidade: 'PRO', popular: false, features: ['900 créditos/mês', 'Qualidade PRO', 'Vídeos até 20s', 'Download em MP4', 'Suporte dedicado', 'API access em breve'] },
+  { id: 'free',       nome: 'Free',       preco: 0,     creditos: 5,    qualidade: 'STD', popular: false, features: ['5 créditos/mês', 'Modo Standard', 'Vídeos até 5s', 'Download em MP4'] },
+  { id: 'starter',    nome: 'Starter',    preco: 19.99, creditos: 120,  qualidade: 'STD', popular: false, features: ['120 créditos/mês', 'Modos Standard e Pro', 'Vídeos até 10s', 'Download em MP4', 'Suporte por email'] },
+  { id: 'pro',        nome: 'Pro',        preco: 39.99, creditos: 300,  qualidade: 'PRO', popular: true,  features: ['300 créditos/mês', 'Todos os modos', 'Qualidade PRO', 'Vídeos até 20s', 'Download em MP4', 'Suporte prioritário'] },
+  { id: 'agency',     nome: 'Agency',     preco: 79.99, creditos: 700,  qualidade: 'PRO', popular: false, features: ['700 créditos/mês', 'Todos os modos', 'Qualidade PRO', 'Vídeos até 30s', 'Download em MP4', 'Suporte dedicado'] },
+  { id: 'enterprise', nome: 'Enterprise', preco: 299,   creditos: 3500, qualidade: 'PRO', popular: false, features: ['3500 créditos/mês', 'Todos os modos', 'Qualidade PRO', 'Vídeos até 30s', 'Download em MP4', 'Gestor de conta dedicado'] },
 ]
 
 const FAQS = [
-  { q: 'O que é um crédito?', r: 'Cada segundo de vídeo gerado consome 1 crédito. Um vídeo de 10 segundos custa 10 créditos.' },
+  { q: 'O que é um crédito?', r: 'Os créditos são consumidos consoante o modo e duração do vídeo. No modo Standard custa 1 cr/s, Pro 2 cr/s, Antes/Depois 1.6 cr/s e Vídeo→Vídeo 1.2 cr/s.' },
   { q: 'Que tipos de imagens posso usar?', r: 'Aceitamos JPG, PNG e WEBP com tamanho máximo de 10MB. Funciona com fotos de imóveis, terrenos, interiores e exteriores.' },
   { q: 'Os créditos renovam mensalmente?', r: 'Sim, os créditos renovam automaticamente no início de cada mês de faturação.' },
   { q: 'Posso cancelar a qualquer momento?', r: 'Sim, podes cancelar ou mudar de plano a qualquer momento, sem compromisso.' },
@@ -93,7 +94,7 @@ export default function LandingPage() {
 
           <motion.p initial="hidden" animate="visible" custom={4} variants={fadeUp}
             className="mt-4 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            10 créditos grátis · Sem cartão de crédito
+            5 créditos grátis · Sem cartão de crédito
           </motion.p>
         </div>
       </section>
@@ -145,7 +146,7 @@ export default function LandingPage() {
               </button>
             </div>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {PLANOS.map((plano, i) => (
               <motion.div key={plano.id}
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
@@ -163,7 +164,7 @@ export default function LandingPage() {
                 <div className="mb-4">
                   <h3 className="font-semibold text-lg mb-1">{plano.nome}</h3>
                   <div className="flex items-end gap-1">
-                    <span className="text-3xl font-bold">€{anual ? (plano.preco * 0.8).toFixed(2) : plano.preco.toFixed(2)}</span>
+                    <span className="text-3xl font-bold">€{anual ? (plano.preco * 0.8 % 1 === 0 ? (plano.preco * 0.8).toFixed(0) : (plano.preco * 0.8).toFixed(2)) : (plano.preco % 1 === 0 ? plano.preco : plano.preco.toFixed(2))}</span>
                     <span className="text-sm mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>/mês</span>
                   </div>
                   <div className="text-sm mt-1" style={{ color: '#00d4aa' }}>{plano.creditos} créditos · {plano.qualidade}</div>
@@ -226,7 +227,7 @@ export default function LandingPage() {
           <div className="p-10 rounded-3xl"
             style={{ background: 'linear-gradient(135deg, rgba(0,212,170,0.1), rgba(26,26,46,0.8))', border: '1px solid rgba(0,212,170,0.2)' }}>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Pronto para começar?</h2>
-            <p className="mb-8" style={{ color: 'rgba(255,255,255,0.6)' }}>Cria a tua conta grátis hoje e recebe 10 créditos para experimentar.</p>
+            <p className="mb-8" style={{ color: 'rgba(255,255,255,0.6)' }}>Cria a tua conta grátis hoje e recebe 5 créditos para experimentar.</p>
             <Link href="/auth/register"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition-all"
               style={{ background: '#00d4aa', color: '#000' }}>
