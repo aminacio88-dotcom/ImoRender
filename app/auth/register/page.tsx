@@ -64,7 +64,7 @@ export default function RegisterPage() {
             <span className="font-bold text-xl" style={{ color: '#1A1A2E' }}>ImoRender</span>
           </Link>
           <h1 className="text-2xl font-bold mb-2" style={{ color: '#1A1A2E' }}>Cria a tua conta</h1>
-          <p className="text-sm" style={{ color: '#6B7280' }}>5 créditos grátis · Sem cartão de crédito</p>
+          <p className="text-sm" style={{ color: '#6B7280' }}>50 créditos grátis · Sem cartão de crédito</p>
         </div>
 
         <div className="p-8 rounded-2xl" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
