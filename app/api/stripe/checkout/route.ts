@@ -40,6 +40,12 @@ export async function POST(request: NextRequest) {
     checkoutParams.customer_email = profile?.email || session.user.email
   }
 
-  const checkoutSession = await stripe.checkout.sessions.create(checkoutParams)
-  return NextResponse.json({ url: checkoutSession.url })
+  try {
+    const checkoutSession = await stripe.checkout.sessions.create(checkoutParams)
+    return NextResponse.json({ url: checkoutSession.url })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Stripe error'
+    console.error('Stripe checkout error:', message)
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }

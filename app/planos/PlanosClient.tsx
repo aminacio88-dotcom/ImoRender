@@ -51,11 +51,11 @@ export default function PlanosClient({
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert('Erro ao iniciar checkout. Tenta novamente.')
+        alert('Erro: ' + (data.error || 'Erro ao iniciar checkout.'))
         setLoading(null)
       }
-    } catch {
-      alert('Erro ao iniciar checkout. Tenta novamente.')
+    } catch (err) {
+      alert('Erro ao iniciar checkout: ' + (err instanceof Error ? err.message : 'unknown'))
       setLoading(null)
     }
   }
