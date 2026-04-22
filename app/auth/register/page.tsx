@@ -27,7 +27,11 @@ export default function RegisterPage() {
       options: { data: { nome }, emailRedirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) {
-      setError(error.message === 'User already registered' ? 'Este email já está registado.' : 'Ocorreu um erro. Tenta novamente.')
+      if (error.message === 'User already registered') {
+        setError('Este email já está registado.')
+      } else {
+        setError(error.message || 'Ocorreu um erro. Tenta novamente.')
+      }
       setLoading(false)
       return
     }
