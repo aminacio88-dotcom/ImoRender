@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { calcularCreditos, MODO_LABELS, MODO_BADGE_COLORS, MODO_BADGE_TEXT, PLANO_LABELS, PLANO_WAIT } from '@/lib/creditos'
 import type { Profile, Video, Modo, AspectRatio } from '@/lib/types'
@@ -31,7 +31,10 @@ const PLACEHOLDERS: Record<Modo, string> = {
 
 export default function DashboardClient({ profile: initialProfile, videos: initialVideos }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  const [showSuccess, setShowSuccess] = useState(searchParams.get('success') === 'true')
 
   const [profile, setProfile] = useState(initialProfile)
   const [videos, setVideos] = useState(initialVideos)
@@ -219,6 +222,18 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
       </nav>
 
       <div className="pt-24 pb-16 px-4 max-w-4xl mx-auto">
+
+        {/* Sucesso após pagamento */}
+        {showSuccess && (
+          <div className="mb-5 p-4 rounded-xl flex items-center justify-between gap-4"
+            style={{ background: '#F0FDF9', border: '1px solid #00D4AA' }}>
+            <div>
+              <p className="font-bold text-sm" style={{ color: '#00B894' }}>Subscrição ativada com sucesso!</p>
+              <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>O teu plano e créditos foram atualizados. Podes começar a gerar vídeos agora.</p>
+            </div>
+            <button onClick={() => setShowSuccess(false)} className="text-lg font-bold" style={{ color: '#9CA3AF' }}>✕</button>
+          </div>
+        )}
 
         {/* Avisos de créditos */}
         {semCreditos && (

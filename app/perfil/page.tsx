@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { PLANO_LABELS, PLANO_TARGET, PLANO_WAIT } from '@/lib/creditos'
+import PerfilActions from './PerfilActions'
 
 export default async function PerfilPage() {
   const supabase = createClient()
@@ -98,22 +99,7 @@ export default async function PerfilPage() {
             )}
           </div>
 
-          <div className="mt-5 pt-4 flex flex-col sm:flex-row gap-3" style={{ borderTop: '1px solid #E5E7EB' }}>
-            {!isAgency && (
-              <Link href="/planos"
-                className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-center transition-all hover:opacity-90"
-                style={{ background: '#00D4AA', color: '#FFFFFF' }}>
-                Fazer upgrade →
-              </Link>
-            )}
-            {isPaid && (
-              <Link href="/planos"
-                className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-center"
-                style={{ background: '#F1F3F5', color: '#374151', border: '1px solid #E5E7EB' }}>
-                Comprar créditos extra
-              </Link>
-            )}
-          </div>
+          <PerfilActions isPaid={isPaid} isAgency={isAgency} />
         </div>
 
         {/* Estatísticas */}
