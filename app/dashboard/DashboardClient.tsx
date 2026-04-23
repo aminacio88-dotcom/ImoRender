@@ -157,13 +157,20 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
         bodyData.videoMimeType = videoFile.type
       }
 
-      const res  = await fetch('/api/generate-video', {
+      const res = await fetch('/api/generate-video', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyData),
       })
-      const data = await res.json()
 
-      if (!res.ok) { setError(data.error || 'Erro ao gerar o vídeo.'); setLoading(false); return }
+      let data: Record<string, string> = {}
+      try {
+        data = await res.json()
+      } catch {
+        setError(`Erro ${res.status}: resposta inválida do servidor.`)
+        setLoading(false); return
+      }
+
+      if (!res.ok) { setError(data.error || `Erro ${res.status}`); setLoading(false); return }
 
       setPollingId(data.videoId)
       setImageFile(null); setImagePreview(null)
@@ -174,8 +181,8 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
       if (newVideos) setVideos(newVideos as Video[])
       const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', profile.id).single()
       if (newProfile) setProfile(newProfile as Profile)
-    } catch {
-      setError('Ocorreu um erro inesperado. Tenta novamente.')
+    } catch (err) {
+      setError('Erro: ' + (err instanceof Error ? err.message : String(err)))
       setLoading(false)
     }
   }
