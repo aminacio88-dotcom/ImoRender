@@ -54,6 +54,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [pollingId, setPollingId] = useState<string | null>(null)
+  const [pollingSeconds, setPollingSeconds] = useState(0)
 
   const fileRef      = useRef<HTMLInputElement>(null)
   const tailFileRef  = useRef<HTMLInputElement>(null)
@@ -76,12 +77,15 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
   useEffect(() => {
     if (!pollingId) return
+    setPollingSeconds(0)
+    const ticker = setInterval(() => setPollingSeconds(s => s + 1), 1000)
     const interval = setInterval(async () => {
       const res  = await fetch(`/api/video-status/${pollingId}`)
       const data = await res.json()
       if (data.status === 'completed' || data.status === 'failed') {
         setPollingId(null)
         setLoading(false)
+        setPollingSeconds(0)
         if (data.status === 'failed') {
           setError(`Ocorreu um erro na geração. Os teus ${data.creditos_gastos || 0} créditos foram devolvidos automaticamente.`)
         }
@@ -90,8 +94,8 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
         const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', profile?.id).single()
         if (newProfile) setProfile(newProfile as Profile)
       }
-    }, 5000)
-    return () => clearInterval(interval)
+    }, 3000)
+    return () => { clearInterval(interval); clearInterval(ticker) }
   }, [pollingId, profile?.id, supabase])
 
   function handleImageFile(file: File, type: 'main' | 'tail') {
@@ -478,12 +482,26 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
             )}
 
             {loading && (
-              <div className="px-4 py-3 rounded-xl text-sm flex items-center gap-3" style={{ background: '#F0FDF9', border: '1px solid #00D4AA', color: '#00B894' }}>
-                <svg className="w-4 h-4 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                A gerar o teu vídeo... Tempo estimado de espera: <strong>{PLANO_WAIT[plano] || '—'}</strong>
+              <div className="px-4 py-4 rounded-xl text-sm" style={{ background: '#F0FDF9', border: '1px solid #00D4AA' }}>
+                <div className="flex items-center gap-3 mb-2">
+                  <svg className="w-4 h-4 animate-spin flex-shrink-0" style={{ color: '#00D4AA' }} fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span className="font-semibold" style={{ color: '#00B894' }}>
+                    {pollingId ? 'A gerar o vídeo com IA...' : 'A preparar e enviar...'}
+                  </span>
+                  {pollingId && (
+                    <span className="ml-auto font-mono text-xs" style={{ color: '#9CA3AF' }}>
+                      {Math.floor(pollingSeconds / 60)}:{String(pollingSeconds % 60).padStart(2, '0')}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs" style={{ color: '#6B7280' }}>
+                  {pollingId
+                    ? `A IA está a processar o teu vídeo. Tempo normal de espera: ${PLANO_WAIT[plano] || '—'}. Podes continuar a navegar.`
+                    : 'A otimizar o prompt e submeter para geração...'}
+                </p>
               </div>
             )}
 

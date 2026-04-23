@@ -116,8 +116,8 @@ export async function POST(request: Request) {
     let promptOtimizado = `Professional real estate video: ${promptPortugues}`
     try {
       const claudeRes = await anthropic.messages.create({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 300,
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 200,
         system: SYSTEM_PROMPTS[modo as Modo],
         messages: [{ role: 'user', content: promptPortugues }],
       })
