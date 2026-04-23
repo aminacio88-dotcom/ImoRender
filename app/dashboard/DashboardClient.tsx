@@ -102,7 +102,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       setError('Formato não suportado. Aceites: JPG, PNG, WEBP'); return
     }
-    if (file.size > 10 * 1024 * 1024) { setError('A imagem não pode ter mais de 10MB.'); return }
+    if (file.size > 4 * 1024 * 1024) { setError('A imagem não pode ter mais de 4MB. Comprime a imagem e tenta novamente.'); return }
     setError('')
     const reader = new FileReader()
     reader.onload = e => {

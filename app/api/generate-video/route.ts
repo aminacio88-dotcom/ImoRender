@@ -128,21 +128,20 @@ export async function POST(request: Request) {
 
     // Preparar input do fal.ai por modo
     const falModel = FAL_MODELS[modo as Modo]
+    const durationStr = String(duracaoNum <= 5 ? '5' : '10') as '5' | '10'
     const falInput: Record<string, unknown> = {
       prompt: promptOtimizado,
-      duration: duracaoNum <= 5 ? 5 : 10,
+      duration: durationStr,
       aspect_ratio: aspectRatio,
     }
 
     if (modo === 'standard' || modo === 'pro') {
       falInput.image_url = `data:${imageMimeType};base64,${imageBase64}`
-      falInput.enable_audio = false
     } else if (modo === 'antes_depois') {
       falInput.image_url = `data:${imageMimeType};base64,${imageBase64}`
       falInput.tail_image_url = `data:${tailImageMimeType};base64,${tailImageBase64}`
     } else if (modo === 'video_video') {
       falInput.video_url = `data:${videoMimeType};base64,${videoBase64}`
-      falInput.enable_audio = false
     }
 
     // Submeter job ao fal.ai de forma assíncrona
@@ -151,8 +150,9 @@ export async function POST(request: Request) {
       const { request_id } = await fal.queue.submit(falModel, { input: falInput })
       falRequestId = request_id
     } catch (err) {
-      console.error('Fal.ai submit error:', err)
-      return NextResponse.json({ error: 'Erro ao submeter o vídeo para geração. Tenta novamente.' }, { status: 500 })
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('Fal.ai submit error:', msg)
+      return NextResponse.json({ error: `Fal.ai: ${msg}` }, { status: 500 })
     }
 
     // Criar registo
