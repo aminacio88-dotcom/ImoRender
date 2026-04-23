@@ -99,16 +99,25 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   }, [pollingId, profile?.id, supabase])
 
   function handleImageFile(file: File, type: 'main' | 'tail') {
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('Formato não suportado. Aceites: JPG, PNG, WEBP'); return
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/jfif']
+    const ext = file.name.split('.').pop()?.toLowerCase() || ''
+    const validExts = ['jpg', 'jpeg', 'png', 'webp', 'jfif']
+    if (!validTypes.includes(file.type) && !validExts.includes(ext)) {
+      setError(`Formato não suportado (${file.type || ext}). Aceites: JPG, PNG, WEBP`); return
     }
-    if (file.size > 8 * 1024 * 1024) { setError('⚠️ A imagem é demasiado grande (máx. 8MB). Comprime a imagem em tinypng.com e tenta novamente.'); window.scrollTo(0, 0); return }
+    if (file.size > 8 * 1024 * 1024) {
+      setError('⚠️ A imagem é demasiado grande (máx. 8MB). Comprime em tinypng.com e tenta novamente.')
+      return
+    }
     setError('')
     const reader = new FileReader()
     reader.onload = e => {
-      if (type === 'main') { setImageFile(file); setImagePreview(e.target?.result as string) }
-      else { setTailImageFile(file); setTailImagePreview(e.target?.result as string) }
+      const result = e.target?.result as string
+      if (!result) { setError('Erro ao ler a imagem. Tenta outro ficheiro.'); return }
+      if (type === 'main') { setImageFile(file); setImagePreview(result) }
+      else { setTailImageFile(file); setTailImagePreview(result) }
     }
+    reader.onerror = () => setError('Erro ao carregar a imagem. Tenta novamente.')
     reader.readAsDataURL(file)
   }
 
