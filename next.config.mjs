@@ -8,9 +8,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'storage.googleapis.com' },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['@anthropic-ai/sdk'],
-  },
+  serverExternalPackages: ['@anthropic-ai/sdk'],
 }
 
 export default nextConfig

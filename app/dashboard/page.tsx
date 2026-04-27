@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import DashboardClient from './DashboardClient'
 
@@ -21,5 +22,9 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(20)
 
-  return <DashboardClient profile={profile} videos={videos || []} />
+  return (
+    <Suspense fallback={null}>
+      <DashboardClient profile={profile} videos={videos || []} />
+    </Suspense>
+  )
 }
