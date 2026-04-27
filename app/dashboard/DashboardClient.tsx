@@ -14,7 +14,7 @@ const MODOS = [
   { id: 'pro' as Modo,              icon: '⭐', nome: 'Pro',                desc: 'Uma foto, qualidade cinematográfica. Resultados premium.',                                                          cr: '20 cr/s' },
   { id: 'antes_depois' as Modo,     icon: '🔄', nome: 'Antes/Depois',       desc: 'Duas fotos. O vídeo transforma a primeira na segunda.',                                                            cr: '16 cr/s' },
   { id: 'video_video' as Modo,      icon: '🎬', nome: 'Vídeo→Vídeo',        desc: 'Transforma um vídeo existente com IA.',                                                                            cr: '12 cr/s' },
-  { id: 'projeto_aprovado' as Modo, icon: '📐', nome: 'Projeto Aprovado',   desc: 'Carrega a foto do terreno e a planta do projeto aprovado. A IA constrói a moradia exatamente como projetada.',    cr: '50 cr/s' },
+  { id: 'projeto_aprovado' as Modo, icon: '📐', nome: 'Projeto Aprovado',   desc: 'Carrega a foto do terreno e a planta do projeto aprovado. A IA constrói a moradia exatamente como projetada.',    cr: '40 cr/s' },
 ]
 
 const FORMATOS: { id: AspectRatio; label: string; desc: string; w: number; h: number }[] = [

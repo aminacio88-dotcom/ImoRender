@@ -6,7 +6,7 @@ const TAXAS: Record<Modo, number> = {
   pro:              20,
   antes_depois:     16,
   video_video:      12,
-  projeto_aprovado: 50,
+  projeto_aprovado: 40,
 }
 
 export function calcularCreditos(modo: Modo, segundos: number): number {
