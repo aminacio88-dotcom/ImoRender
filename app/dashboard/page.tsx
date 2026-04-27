@@ -22,9 +22,16 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(20)
 
+  const { data: renders } = await supabase
+    .from('renders')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .order('created_at', { ascending: false })
+    .limit(20)
+
   return (
     <Suspense fallback={null}>
-      <DashboardClient profile={profile} videos={videos || []} />
+      <DashboardClient profile={profile} videos={videos || []} renders={renders || []} />
     </Suspense>
   )
 }

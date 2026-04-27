@@ -48,6 +48,8 @@ export const MODO_BADGE_TEXT: Record<Modo, string> = {
   projeto_aprovado: '#7C3AED',
 }
 
+export const CREDITOS_RENDER_IA = 30
+
 export const PLANO_LABELS: Record<string, string> = {
   free:       'Free',
   starter:    'Starter',

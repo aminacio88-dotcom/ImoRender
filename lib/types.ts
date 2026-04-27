@@ -2,7 +2,9 @@ export type Plano = 'free' | 'starter' | 'team' | 'agency' | 'pro' | 'enterprise
 export type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type Qualidade = 'std' | 'pro'
 export type Modo = 'standard' | 'pro' | 'antes_depois' | 'video_video' | 'projeto_aprovado'
+export type DashboardMode = Modo | 'render_ia'
 export type AspectRatio = '16:9' | '9:16' | '1:1'
+export type RenderStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
 export interface Profile {
   id: string
@@ -40,6 +42,21 @@ export interface PlanoDB {
   preco: number
   creditos_mensais: number
   qualidade: Qualidade
+}
+
+export interface Render {
+  id: string
+  user_id: string
+  input_image_url: string | null
+  render_url: string | null
+  style: string
+  prompt_original: string
+  prompt_otimizado: string
+  creditos_gastos: number
+  status: RenderStatus
+  fal_request_id: string | null
+  modelo_usado: string | null
+  created_at: string
 }
 
 export interface PackCreditos {
