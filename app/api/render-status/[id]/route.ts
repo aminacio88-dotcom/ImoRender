@@ -100,16 +100,21 @@ export async function GET(request: Request, { params }: { params: { id: string }
           return NextResponse.json({ ...render, status: 'failed' })
         }
 
-        // Download and store in Supabase Storage
-        let finalRenderUrl = falImageUrl
-        try {
-          console.log('Downloading render image from fal.ai...')
-          const imgRes = await fetch(falImageUrl)
-          if (imgRes.ok) {
+        // Download and store in Supabase Storage (sem fallback para URL temporário)
+        const ext = falImageUrl.includes('.png') ? 'png' : 'jpg'
+        const fileName = `${session.user.id}/${render.id}.${ext}`
+        const serviceClient = getServiceClient()
+        let finalRenderUrl: string | null = null
+
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            console.log(`Downloading render image from fal.ai (attempt ${attempt})...`)
+            const imgRes = await fetch(falImageUrl)
+            if (!imgRes.ok) {
+              console.error(`Render download failed (${imgRes.status}), attempt ${attempt}`)
+              continue
+            }
             const imgBuffer = await imgRes.arrayBuffer()
-            const ext = falImageUrl.includes('.png') ? 'png' : 'jpg'
-            const fileName = `${session.user.id}/${render.id}.${ext}`
-            const serviceClient = getServiceClient()
             const { error: uploadError } = await serviceClient.storage
               .from('renders')
               .upload(fileName, imgBuffer, {
@@ -117,17 +122,23 @@ export async function GET(request: Request, { params }: { params: { id: string }
                 upsert: true,
               })
             if (uploadError) {
-              console.error('Render storage upload error:', uploadError.message)
-            } else {
-              const { data: publicData } = serviceClient.storage
-                .from('renders')
-                .getPublicUrl(fileName)
-              finalRenderUrl = publicData.publicUrl
-              console.log('Render stored in Supabase Storage:', finalRenderUrl)
+              console.error(`Render storage upload error attempt ${attempt}:`, uploadError.message)
+              continue
             }
+            const { data: publicData } = serviceClient.storage.from('renders').getPublicUrl(fileName)
+            finalRenderUrl = publicData.publicUrl
+            console.log('Render stored in Supabase Storage:', finalRenderUrl)
+            break
+          } catch (err) {
+            console.error(`Render storage attempt ${attempt} failed:`, err)
           }
-        } catch (storageErr) {
-          console.error('Render storage error (using fal URL as fallback):', storageErr)
+        }
+
+        if (!finalRenderUrl) {
+          console.error('All render storage attempts failed — marking as failed and refunding credits')
+          await supabase.from('renders').update({ status: 'failed' }).eq('id', render.id)
+          await devolverCreditos(supabase, session.user.id, render.creditos_gastos)
+          return NextResponse.json({ ...render, status: 'failed' })
         }
 
         await supabase.from('renders').update({ render_url: finalRenderUrl, status: 'completed' }).eq('id', render.id)
