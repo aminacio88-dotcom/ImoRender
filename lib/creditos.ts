@@ -16,10 +16,10 @@ export function calcularCreditos(modo: Modo, segundos: number): number {
 }
 
 export const FAL_MODELS: Record<Modo, string> = {
-  standard:     'fal-ai/kling-video/v2.6/standard/image-to-video',
-  pro:          'fal-ai/kling-video/v2.6/pro/image-to-video',
+  standard:     'fal-ai/kling-video/v2.1/standard/image-to-video',
+  pro:          'fal-ai/kling-video/v3/pro/image-to-video',
   antes_depois: 'fal-ai/kling-video/v1.6/pro/image-to-video',
-  video_video:  'fal-ai/kling-video/v2.6/standard/video-to-video',
+  video_video:  'fal-ai/kling-video/v1.6/standard/image-to-video',
 }
 
 export const MODO_LABELS: Record<Modo, string> = {
