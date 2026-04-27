@@ -14,7 +14,7 @@ const MODOS = [
   { id: 'pro' as Modo,              icon: '⭐', nome: 'Pro',                desc: 'Uma foto, qualidade cinematográfica. Resultados premium.',                                                          cr: '20 cr/s' },
   { id: 'antes_depois' as Modo,     icon: '🔄', nome: 'Antes/Depois',       desc: 'Duas fotos. O vídeo transforma a primeira na segunda.',                                                            cr: '16 cr/s' },
   { id: 'video_video' as Modo,      icon: '🎬', nome: 'Vídeo→Vídeo',        desc: 'Transforma um vídeo existente com IA.',                                                                            cr: '12 cr/s' },
-  { id: 'projeto_aprovado' as Modo, icon: '📐', nome: 'Projeto Aprovado',   desc: 'Carrega a foto do terreno e a planta do projeto aprovado. A IA constrói a moradia exatamente como projetada.',    cr: '40 cr/s' },
+  { id: 'projeto_aprovado' as Modo, icon: '📐', nome: 'Projeto Aprovado',   desc: 'Carrega a foto do terreno e um render 3D ou planta 3D do projeto. A IA constrói a moradia com base na visualização 3D.',    cr: '40 cr/s' },
 ]
 
 const FORMATOS: { id: AspectRatio; label: string; desc: string; w: number; h: number }[] = [
@@ -28,7 +28,7 @@ const PLACEHOLDERS: Record<Modo, string> = {
   pro:              'Ex: Quero ver este terreno limpo com uma moradia moderna construída e jardim bem cuidado',
   antes_depois:     'Ex: Transformação gradual do terreno abandonado para moradia de luxo moderna',
   video_video:      'Ex: Adicionar céu azul, remover vegetação seca, adicionar jardim moderno',
-  projeto_aprovado: 'Ex: Construir a moradia da planta aprovada neste terreno, perspetiva aérea, fotorrealista',
+  projeto_aprovado: 'Ex: Construir a moradia do render 3D neste terreno, perspetiva aérea, fotorrealista',
 }
 
 export default function DashboardClient({ profile: initialProfile, videos: initialVideos }: Props) {
@@ -481,28 +481,36 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                 />
               )}
               {modo === 'projeto_aprovado' && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs mb-2 text-center font-medium" style={{ color: '#6B7280' }}>Foto do Terreno</p>
-                    <UploadZone accept="image" preview={imagePreview}
-                      dragOver={dragOver === 'main'}
-                      onDragOver={() => setDragOver('main')} onDragLeave={() => setDragOver(null)}
-                      onDrop={e => handleDrop(e, 'main')}
-                      onClick={() => fileRef.current?.click()}
-                      onClear={() => { setImageFile(null); setImagePreview(null) }}
-                    />
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs mb-2 text-center font-medium" style={{ color: '#6B7280' }}>Foto do Terreno</p>
+                      <UploadZone accept="image" preview={imagePreview}
+                        dragOver={dragOver === 'main'}
+                        onDragOver={() => setDragOver('main')} onDragLeave={() => setDragOver(null)}
+                        onDrop={e => handleDrop(e, 'main')}
+                        onClick={() => fileRef.current?.click()}
+                        onClear={() => { setImageFile(null); setImagePreview(null) }}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-xs mb-2 text-center font-medium" style={{ color: '#6B7280' }}>Render 3D / Planta 3D</p>
+                      <UploadZone accept="plan" preview={planPreview}
+                        dragOver={dragOver === 'plan'}
+                        onDragOver={() => setDragOver('plan')} onDragLeave={() => setDragOver(null)}
+                        onDrop={e => { e.preventDefault(); setDragOver(null); const f = e.dataTransfer.files[0]; if (f) handlePlanFile(f) }}
+                        onClick={() => planFileRef.current?.click()}
+                        onClear={() => { setPlanFile(null); setPlanPreview(null) }}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs mb-2 text-center font-medium" style={{ color: '#6B7280' }}>Planta do Projeto</p>
-                    <UploadZone accept="plan" preview={planPreview}
-                      dragOver={dragOver === 'plan'}
-                      onDragOver={() => setDragOver('plan')} onDragLeave={() => setDragOver(null)}
-                      onDrop={e => { e.preventDefault(); setDragOver(null); const f = e.dataTransfer.files[0]; if (f) handlePlanFile(f) }}
-                      onClick={() => planFileRef.current?.click()}
-                      onClear={() => { setPlanFile(null); setPlanPreview(null) }}
-                    />
+                  <div className="mt-3 px-3 py-2.5 rounded-lg flex items-start gap-2" style={{ background: '#FEF9C3', border: '1px solid #FDE68A' }}>
+                    <span className="text-sm flex-shrink-0">💡</span>
+                    <p className="text-xs leading-relaxed" style={{ color: '#92400E' }}>
+                      <span className="font-bold">Importante:</span> Para bons resultados é necessário um <span className="font-bold">render 3D ou planta 3D</span> da moradia. Uma planta 2D (planta de arquiteto) não tem detalhe visual suficiente para a IA reproduzir corretamente.
+                    </p>
                   </div>
-                </div>
+                </>
               )}
 
               <input ref={fileRef} type="file" className="hidden" accept=".jpg,.jpeg,.png,.webp"
@@ -727,7 +735,7 @@ function UploadZone({ accept, preview, videoName, dragOver, onDragOver, onDragLe
             {accept === 'video' ? 'Arrasta um vídeo ou clica para selecionar' : accept === 'plan' ? 'Arrasta a planta ou clica para selecionar' : 'Arrasta uma foto ou clica para selecionar'}
           </p>
           <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
-            {accept === 'video' ? 'MP4, MOV · máx. 50MB' : accept === 'plan' ? 'JPG, PNG, WEBP, PDF · máx. 10MB' : 'JPG, PNG, WEBP · máx. 10MB'}
+            {accept === 'video' ? 'MP4, MOV · máx. 50MB' : accept === 'plan' ? 'JPG, PNG, WEBP · máx. 10MB' : 'JPG, PNG, WEBP · máx. 10MB'}
           </p>
         </div>
       )}
