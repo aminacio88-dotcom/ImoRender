@@ -1,7 +1,7 @@
 export type Plano = 'free' | 'starter' | 'team' | 'agency' | 'pro' | 'enterprise'
 export type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type Qualidade = 'std' | 'pro'
-export type Modo = 'standard' | 'pro' | 'antes_depois' | 'video_video'
+export type Modo = 'standard' | 'pro' | 'antes_depois' | 'video_video' | 'projeto_aprovado'
 export type AspectRatio = '16:9' | '9:16' | '1:1'
 
 export interface Profile {

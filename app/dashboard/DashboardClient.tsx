@@ -10,10 +10,11 @@ import type { Profile, Video, Modo, AspectRatio } from '@/lib/types'
 interface Props { profile: Profile | null; videos: Video[] }
 
 const MODOS = [
-  { id: 'standard' as Modo, icon: '🖼️', nome: 'Standard',    desc: 'Uma foto, movimento natural. Ideal para imóveis e terrenos.', cr: '10 cr/s' },
-  { id: 'pro' as Modo,      icon: '⭐', nome: 'Pro',          desc: 'Uma foto, qualidade cinematográfica. Resultados premium.',    cr: '20 cr/s' },
-  { id: 'antes_depois' as Modo, icon: '🔄', nome: 'Antes/Depois', desc: 'Duas fotos. O vídeo transforma a primeira na segunda.',    cr: '16 cr/s' },
-  { id: 'video_video' as Modo,  icon: '🎬', nome: 'Vídeo→Vídeo', desc: 'Transforma um vídeo existente com IA.',                   cr: '12 cr/s' },
+  { id: 'standard' as Modo,         icon: '🖼️', nome: 'Standard',          desc: 'Uma foto, movimento natural. Ideal para imóveis e terrenos.',                                                       cr: '10 cr/s' },
+  { id: 'pro' as Modo,              icon: '⭐', nome: 'Pro',                desc: 'Uma foto, qualidade cinematográfica. Resultados premium.',                                                          cr: '20 cr/s' },
+  { id: 'antes_depois' as Modo,     icon: '🔄', nome: 'Antes/Depois',       desc: 'Duas fotos. O vídeo transforma a primeira na segunda.',                                                            cr: '16 cr/s' },
+  { id: 'video_video' as Modo,      icon: '🎬', nome: 'Vídeo→Vídeo',        desc: 'Transforma um vídeo existente com IA.',                                                                            cr: '12 cr/s' },
+  { id: 'projeto_aprovado' as Modo, icon: '📐', nome: 'Projeto Aprovado',   desc: 'Carrega a foto do terreno e a planta do projeto aprovado. A IA constrói a moradia exatamente como projetada.',    cr: '50 cr/s' },
 ]
 
 const FORMATOS: { id: AspectRatio; label: string; desc: string; w: number; h: number }[] = [
@@ -23,10 +24,11 @@ const FORMATOS: { id: AspectRatio; label: string; desc: string; w: number; h: nu
 ]
 
 const PLACEHOLDERS: Record<Modo, string> = {
-  standard:     'Ex: Quero ver este terreno limpo com uma moradia moderna construída e jardim bem cuidado',
-  pro:          'Ex: Quero ver este terreno limpo com uma moradia moderna construída e jardim bem cuidado',
-  antes_depois: 'Ex: Transformação gradual do terreno abandonado para moradia de luxo moderna',
-  video_video:  'Ex: Adicionar céu azul, remover vegetação seca, adicionar jardim moderno',
+  standard:         'Ex: Quero ver este terreno limpo com uma moradia moderna construída e jardim bem cuidado',
+  pro:              'Ex: Quero ver este terreno limpo com uma moradia moderna construída e jardim bem cuidado',
+  antes_depois:     'Ex: Transformação gradual do terreno abandonado para moradia de luxo moderna',
+  video_video:      'Ex: Adicionar céu azul, remover vegetação seca, adicionar jardim moderno',
+  projeto_aprovado: 'Ex: Construir a moradia da planta aprovada neste terreno, perspetiva aérea, fotorrealista',
 }
 
 export default function DashboardClient({ profile: initialProfile, videos: initialVideos }: Props) {
@@ -48,8 +50,10 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [tailImageFile, setTailImageFile] = useState<File | null>(null)
   const [tailImagePreview, setTailImagePreview] = useState<string | null>(null)
+  const [planFile, setPlanFile] = useState<File | null>(null)
+  const [planPreview, setPlanPreview] = useState<string | null>(null)
   const [videoFile, setVideoFile] = useState<File | null>(null)
-  const [dragOver, setDragOver] = useState<'main' | 'tail' | null>(null)
+  const [dragOver, setDragOver] = useState<'main' | 'tail' | 'plan' | null>(null)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -58,6 +62,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
   const fileRef      = useRef<HTMLInputElement>(null)
   const tailFileRef  = useRef<HTMLInputElement>(null)
+  const planFileRef  = useRef<HTMLInputElement>(null)
   const videoFileRef = useRef<HTMLInputElement>(null)
 
   const creditosNecessarios  = calcularCreditos(modo, duracao)
@@ -72,8 +77,28 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   useEffect(() => {
     setImageFile(null); setImagePreview(null)
     setTailImageFile(null); setTailImagePreview(null)
+    setPlanFile(null); setPlanPreview(null)
     setVideoFile(null); setError('')
+    if (modo === 'projeto_aprovado' && duracao > 15) setDuracao(15)
   }, [modo])
+
+  // Ao carregar a página, verifica vídeos stuck em processing e devolve créditos
+  useEffect(() => {
+    const processingVideos = initialVideos.filter(v => v.status === 'processing')
+    processingVideos.forEach(async (v) => {
+      try {
+        const res = await fetch(`/api/video-status/${v.id}`)
+        const data = await res.json()
+        if (data.status === 'failed' || data.status === 'completed') {
+          const { data: newVideos } = await supabase.from('videos').select('*').eq('user_id', profile?.id).order('created_at', { ascending: false }).limit(20)
+          if (newVideos) setVideos(newVideos as Video[])
+          const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', profile?.id).single()
+          if (newProfile) setProfile(newProfile as Profile)
+        }
+      } catch {}
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (!pollingId) return
@@ -129,6 +154,67 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
     setError(''); setVideoFile(file)
   }
 
+  async function handlePlanFile(file: File) {
+    const ext = file.name.split('.').pop()?.toLowerCase() || ''
+    const isPdf = file.type === 'application/pdf' || ext === 'pdf'
+
+    if (isPdf) {
+      if (file.size > 10 * 1024 * 1024) { setError('O PDF não pode ter mais de 10MB.'); return }
+      setError('')
+      try {
+        const win = window as unknown as Record<string, unknown>
+        if (!win.__pdfjs_loaded) {
+          await new Promise<void>((resolve, reject) => {
+            const s = document.createElement('script')
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+            s.onload = () => { win.__pdfjs_loaded = true; resolve() }
+            s.onerror = () => reject(new Error('Falha ao carregar PDF.js'))
+            document.head.appendChild(s)
+          })
+          const pdfjs = win.pdfjsLib as { GlobalWorkerOptions: { workerSrc: string } }
+          pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+        }
+        const pdfjs = win.pdfjsLib as {
+          getDocument: (opts: { data: ArrayBuffer }) => { promise: Promise<{ getPage: (n: number) => Promise<{ getViewport: (opts: { scale: number }) => { width: number; height: number }; render: (opts: { canvasContext: CanvasRenderingContext2D; viewport: { width: number; height: number } }) => { promise: Promise<void> } }> }> }
+        }
+        const bytes = await file.arrayBuffer()
+        const pdf = await pdfjs.getDocument({ data: bytes }).promise
+        const page = await pdf.getPage(1)
+        const vp = page.getViewport({ scale: 2 })
+        const canvas = document.createElement('canvas')
+        canvas.width = vp.width
+        canvas.height = vp.height
+        await page.render({ canvasContext: canvas.getContext('2d')!, viewport: vp }).promise
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
+        const res = await fetch(dataUrl)
+        const blob = await res.blob()
+        const jpegFile = new File([blob], file.name.replace(/\.pdf$/i, '.jpg'), { type: 'image/jpeg' })
+        setPlanFile(jpegFile)
+        setPlanPreview(dataUrl)
+      } catch {
+        setError('Erro ao converter PDF. Exporta a planta como JPG ou PNG e tenta novamente.')
+      }
+      return
+    }
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    const validExts = ['jpg', 'jpeg', 'png', 'webp']
+    if (!validTypes.includes(file.type) && !validExts.includes(ext)) {
+      setError('Formato não suportado. Aceites: JPG, PNG, WEBP, PDF'); return
+    }
+    if (file.size > 10 * 1024 * 1024) { setError('A imagem é demasiado grande (máx. 10MB).'); return }
+    setError('')
+    const reader = new FileReader()
+    reader.onload = e => {
+      const result = e.target?.result as string
+      if (!result) { setError('Erro ao ler a imagem.'); return }
+      setPlanFile(file)
+      setPlanPreview(result)
+    }
+    reader.onerror = () => setError('Erro ao carregar o ficheiro.')
+    reader.readAsDataURL(file)
+  }
+
   const handleDrop = useCallback((e: React.DragEvent, type: 'main' | 'tail') => {
     e.preventDefault(); setDragOver(null)
     const file = e.dataTransfer.files[0]
@@ -168,6 +254,12 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
         if (!videoFile) { setError('Carrega um vídeo.'); setLoading(false); return }
         bodyData.videoBase64  = await fileToBase64(videoFile)
         bodyData.videoMimeType = videoFile.type
+      } else if (modo === 'projeto_aprovado') {
+        if (!imageFile || !planFile) { setError('Precisas de carregar a foto do terreno e a planta.'); setLoading(false); return }
+        bodyData.imageBase64      = await fileToBase64(imageFile)
+        bodyData.imageMimeType    = imageFile.type || 'image/jpeg'
+        bodyData.planImageBase64  = await fileToBase64(planFile)
+        bodyData.planImageMimeType = planFile.type || 'image/jpeg'
       }
 
       const res = await fetch('/api/generate-video', {
@@ -188,6 +280,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
       setPollingId(data.videoId)
       setImageFile(null); setImagePreview(null)
       setTailImageFile(null); setTailImagePreview(null)
+      setPlanFile(null); setPlanPreview(null)
       setVideoFile(null); setPrompt('')
 
       const { data: newVideos } = await supabase.from('videos').select('*').eq('user_id', profile.id).order('created_at', { ascending: false }).limit(20)
@@ -207,7 +300,9 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   const creditosPct = profile ? Math.min(100, Math.round((profile.creditos / profile.creditos_total) * 100)) : 0
   const canGenerate = !loading && !semCreditos && prompt.trim() && !creditosInsuficientes &&
     ((modo === 'standard' || modo === 'pro') ? !!imageFile :
-     modo === 'antes_depois' ? (!!imageFile && !!tailImageFile) : !!videoFile)
+     modo === 'antes_depois' ? (!!imageFile && !!tailImageFile) :
+     modo === 'projeto_aprovado' ? (!!imageFile && !!planFile) :
+     !!videoFile)
 
   return (
     <div style={{ background: '#F8F9FA', minHeight: '100vh' }}>
@@ -340,7 +435,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
             {/* Passo 2 — Upload */}
             <div>
               <label className="block text-sm font-semibold mb-3" style={{ color: '#374151' }}>
-                2. {modo === 'video_video' ? 'Carrega o vídeo' : modo === 'antes_depois' ? 'Carrega as duas fotos' : 'Carrega a foto'}
+                2. {modo === 'video_video' ? 'Carrega o vídeo' : modo === 'antes_depois' ? 'Carrega as duas fotos' : modo === 'projeto_aprovado' ? 'Carrega a foto e a planta' : 'Carrega a foto'}
               </label>
 
               {(modo === 'standard' || modo === 'pro') && (
@@ -385,11 +480,37 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                   onClear={() => setVideoFile(null)}
                 />
               )}
+              {modo === 'projeto_aprovado' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs mb-2 text-center font-medium" style={{ color: '#6B7280' }}>Foto do Terreno</p>
+                    <UploadZone accept="image" preview={imagePreview}
+                      dragOver={dragOver === 'main'}
+                      onDragOver={() => setDragOver('main')} onDragLeave={() => setDragOver(null)}
+                      onDrop={e => handleDrop(e, 'main')}
+                      onClick={() => fileRef.current?.click()}
+                      onClear={() => { setImageFile(null); setImagePreview(null) }}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs mb-2 text-center font-medium" style={{ color: '#6B7280' }}>Planta do Projeto</p>
+                    <UploadZone accept="plan" preview={planPreview}
+                      dragOver={dragOver === 'plan'}
+                      onDragOver={() => setDragOver('plan')} onDragLeave={() => setDragOver(null)}
+                      onDrop={e => { e.preventDefault(); setDragOver(null); const f = e.dataTransfer.files[0]; if (f) handlePlanFile(f) }}
+                      onClick={() => planFileRef.current?.click()}
+                      onClear={() => { setPlanFile(null); setPlanPreview(null) }}
+                    />
+                  </div>
+                </div>
+              )}
 
               <input ref={fileRef} type="file" className="hidden" accept=".jpg,.jpeg,.png,.webp"
                 onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'main')} />
               <input ref={tailFileRef} type="file" className="hidden" accept=".jpg,.jpeg,.png,.webp"
                 onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0], 'tail')} />
+              <input ref={planFileRef} type="file" className="hidden" accept=".jpg,.jpeg,.png,.webp,.pdf,application/pdf"
+                onChange={e => e.target.files?.[0] && handlePlanFile(e.target.files[0])} />
               <input ref={videoFileRef} type="file" className="hidden" accept=".mp4,.mov,video/mp4,video/quicktime"
                 onChange={e => e.target.files?.[0] && handleVideoFile(e.target.files[0])} />
             </div>
@@ -426,11 +547,11 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                 <label className="text-sm font-semibold" style={{ color: '#374151' }}>4. Duração</label>
                 <span className="text-sm font-bold" style={{ color: '#00D4AA' }}>{duracao} segundos</span>
               </div>
-              <input type="range" min={1} max={30} step={1} value={duracao}
+              <input type="range" min={1} max={modo === 'projeto_aprovado' ? 15 : 30} step={1} value={duracao}
                 onChange={e => setDuracao(Number(e.target.value))}
                 className="w-full" style={{ accentColor: '#00D4AA' }} />
               <div className="flex justify-between text-xs mt-1" style={{ color: '#9CA3AF' }}>
-                <span>1s</span><span>30s</span>
+                <span>1s</span><span>{modo === 'projeto_aprovado' ? '15s' : '30s'}</span>
               </div>
             </div>
 
@@ -506,11 +627,20 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                     </span>
                   )}
                 </div>
-                <p className="text-xs" style={{ color: '#6B7280' }}>
+                <p className="text-xs mb-3" style={{ color: '#6B7280' }}>
                   {pollingId
                     ? `A IA está a processar o teu vídeo. Tempo normal de espera: ${PLANO_WAIT[plano] || '—'}. Podes continuar a navegar.`
                     : 'A otimizar o prompt e submeter para geração...'}
                 </p>
+                {pollingId && (
+                  <button
+                    type="button"
+                    onClick={() => { setPollingId(null); setLoading(false); setPollingSeconds(0) }}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg"
+                    style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}>
+                    Cancelar espera e gerar outro vídeo →
+                  </button>
+                )}
               </div>
             )}
 
@@ -554,7 +684,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 }
 
 function UploadZone({ accept, preview, videoName, dragOver, onDragOver, onDragLeave, onDrop, onClick, onClear }: {
-  accept: 'image' | 'video'
+  accept: 'image' | 'video' | 'plan'
   preview: string | null
   videoName?: string
   dragOver: boolean
@@ -592,12 +722,12 @@ function UploadZone({ accept, preview, videoName, dragOver, onDragOver, onDragLe
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-8 text-center">
-          <div className="text-3xl mb-2">{accept === 'video' ? '🎬' : '📷'}</div>
+          <div className="text-3xl mb-2">{accept === 'video' ? '🎬' : accept === 'plan' ? '📐' : '📷'}</div>
           <p className="text-sm font-semibold" style={{ color: '#374151' }}>
-            {accept === 'video' ? 'Arrasta um vídeo ou clica para selecionar' : 'Arrasta uma foto ou clica para selecionar'}
+            {accept === 'video' ? 'Arrasta um vídeo ou clica para selecionar' : accept === 'plan' ? 'Arrasta a planta ou clica para selecionar' : 'Arrasta uma foto ou clica para selecionar'}
           </p>
           <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
-            {accept === 'video' ? 'MP4, MOV · máx. 50MB' : 'JPG, PNG, WEBP · máx. 10MB'}
+            {accept === 'video' ? 'MP4, MOV · máx. 50MB' : accept === 'plan' ? 'JPG, PNG, WEBP, PDF · máx. 10MB' : 'JPG, PNG, WEBP · máx. 10MB'}
           </p>
         </div>
       )}
@@ -614,7 +744,7 @@ function VideoCard({ video }: { video: Video }) {
     <div className="rounded-2xl overflow-hidden" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
       <div className="aspect-video flex items-center justify-center" style={{ background: '#F1F3F5' }}>
         {video.status === 'completed' && video.video_url ? (
-          <video src={video.video_url} controls className="w-full h-full object-cover" />
+          <video src={video.video_url} controls preload="auto" playsInline className="w-full h-full object-cover" />
         ) : video.status === 'processing' || video.status === 'pending' ? (
           <div className="flex flex-col items-center gap-2">
             <svg className="w-8 h-8 animate-spin" style={{ color: '#00D4AA' }} fill="none" viewBox="0 0 24 24">

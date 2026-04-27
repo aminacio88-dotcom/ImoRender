@@ -2,10 +2,11 @@ import type { Modo } from './types'
 
 // x10 cosmético: Standard 10s = 100cr, Pro 10s = 200cr
 const TAXAS: Record<Modo, number> = {
-  standard:     10,
-  pro:          20,
-  antes_depois: 16,
-  video_video:  12,
+  standard:         10,
+  pro:              20,
+  antes_depois:     16,
+  video_video:      12,
+  projeto_aprovado: 50,
 }
 
 export function calcularCreditos(modo: Modo, segundos: number): number {
@@ -16,31 +17,35 @@ export function calcularCreditos(modo: Modo, segundos: number): number {
 }
 
 export const FAL_MODELS: Record<Modo, string> = {
-  standard:     'fal-ai/kling-video/v2.1/standard/image-to-video',
-  pro:          'fal-ai/kling-video/v3/pro/image-to-video',
-  antes_depois: 'fal-ai/kling-video/v1.6/pro/image-to-video',
-  video_video:  'fal-ai/kling-video/v1.6/standard/image-to-video',
+  standard:         'fal-ai/kling-video/v2.1/standard/image-to-video',
+  pro:              'fal-ai/kling-video/v3/pro/image-to-video',
+  antes_depois:     'fal-ai/kling-video/v1.6/pro/image-to-video',
+  video_video:      'fal-ai/kling-video/v1.6/standard/image-to-video',
+  projeto_aprovado: 'fal-ai/kling-video/o3/pro/image-to-video',
 }
 
 export const MODO_LABELS: Record<Modo, string> = {
-  standard:     'Standard',
-  pro:          'Pro',
-  antes_depois: 'Antes/Depois',
-  video_video:  'Vídeo→Vídeo',
+  standard:         'Standard',
+  pro:              'Pro',
+  antes_depois:     'Antes/Depois',
+  video_video:      'Vídeo→Vídeo',
+  projeto_aprovado: 'Projeto Aprovado',
 }
 
 export const MODO_BADGE_COLORS: Record<Modo, string> = {
-  standard:     '#E0F2FE',
-  pro:          '#F0FDF4',
-  antes_depois: '#FEF9C3',
-  video_video:  '#FEF2F2',
+  standard:         '#E0F2FE',
+  pro:              '#F0FDF4',
+  antes_depois:     '#FEF9C3',
+  video_video:      '#FEF2F2',
+  projeto_aprovado: '#EDE9FE',
 }
 
 export const MODO_BADGE_TEXT: Record<Modo, string> = {
-  standard:     '#0284C7',
-  pro:          '#16A34A',
-  antes_depois: '#CA8A04',
-  video_video:  '#DC2626',
+  standard:         '#0284C7',
+  pro:              '#16A34A',
+  antes_depois:     '#CA8A04',
+  video_video:      '#DC2626',
+  projeto_aprovado: '#7C3AED',
 }
 
 export const PLANO_LABELS: Record<string, string> = {
