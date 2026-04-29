@@ -1,12 +1,11 @@
 import type { Modo } from './types'
 
-// x10 cosmético: Standard 10s = 100cr, Pro 10s = 200cr
 const TAXAS: Record<Modo, number> = {
-  standard:         10,
-  pro:              20,
+  standard:         15,
+  pro:              30,
   antes_depois:     16,
   video_video:      12,
-  projeto_aprovado: 40,
+  projeto_aprovado: 50,
 }
 
 export function calcularCreditos(modo: Modo, segundos: number): number {
@@ -17,8 +16,8 @@ export function calcularCreditos(modo: Modo, segundos: number): number {
 }
 
 export const FAL_MODELS: Record<Modo, string> = {
-  standard:         'fal-ai/kling-video/v2.1/standard/image-to-video',
-  pro:              'fal-ai/kling-video/v3/pro/image-to-video',
+  standard:         'fal-ai/veo3.1/fast/image-to-video',
+  pro:              'fal-ai/veo3.1/image-to-video',
   antes_depois:     'fal-ai/kling-video/v1.6/pro/image-to-video',
   video_video:      'fal-ai/kling-video/v1.6/standard/image-to-video',
   projeto_aprovado: 'fal-ai/kling-video/o3/pro/image-to-video',

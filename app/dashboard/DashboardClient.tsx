@@ -11,11 +11,11 @@ interface Props { profile: Profile | null; videos: Video[]; renders: Render[] }
 
 const MODOS: { id: DashboardMode; icon: string; nome: string; desc: string; cr: string }[] = [
   { id: 'render_ia',        icon: '🎨', nome: 'Render IA',         desc: 'Transforma uma planta ou esboço numa visualização fotorrealista. 30 créditos fixo.',                                           cr: '30 cr fixo' },
-  { id: 'standard',         icon: '🖼️', nome: 'Standard',          desc: 'Uma foto, movimento natural. Ideal para imóveis e terrenos.',                                                                    cr: '10 cr/s' },
-  { id: 'pro',              icon: '⭐', nome: 'Pro',                desc: 'Uma foto, qualidade cinematográfica. Resultados premium.',                                                                       cr: '20 cr/s' },
+  { id: 'standard',         icon: '🖼️', nome: 'Standard',          desc: 'Uma foto, movimento natural. Ideal para imóveis e terrenos.',                                                                    cr: '15 cr/s' },
+  { id: 'pro',              icon: '⭐', nome: 'Pro',                desc: 'Uma foto, qualidade cinematográfica. Resultados premium.',                                                                       cr: '30 cr/s' },
   { id: 'antes_depois',     icon: '🔄', nome: 'Antes/Depois',       desc: 'Duas fotos. O vídeo transforma a primeira na segunda.',                                                                          cr: '16 cr/s' },
   { id: 'video_video',      icon: '🎬', nome: 'Vídeo→Vídeo',        desc: 'Transforma um vídeo existente com IA.',                                                                                          cr: '12 cr/s' },
-  { id: 'projeto_aprovado', icon: '📐', nome: 'Projeto Aprovado',   desc: 'Carrega a foto do terreno e um render 3D ou planta 3D do projeto. A IA constrói a moradia com base na visualização 3D.',        cr: '40 cr/s' },
+  { id: 'projeto_aprovado', icon: '📐', nome: 'Projeto Aprovado',   desc: 'Carrega a foto do terreno e um render 3D ou planta 3D do projeto. A IA constrói a moradia com base na visualização 3D.',        cr: '50 cr/s' },
 ]
 
 const RENDER_STYLES = ['Moderno Minimalista', 'Contemporâneo', 'Mediterrâneo', 'Industrial', 'Clássico']
