@@ -56,9 +56,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     }
 
     try {
-      // Status via HTTP direto (base model)
-      const baseModel = video.modelo_usado.split('/').slice(0, 2).join('/')
-      const statusUrl = `https://queue.fal.run/${baseModel}/requests/${video.fal_request_id}/status`
+      const statusUrl = `https://queue.fal.run/${video.modelo_usado}/requests/${video.fal_request_id}/status`
       console.log('Checking status:', statusUrl)
 
       const statusRes = await fetch(statusUrl, {
