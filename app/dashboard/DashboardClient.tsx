@@ -10,7 +10,7 @@ import type { Profile, Video, Modo, AspectRatio, Render, DashboardMode } from '@
 interface Props { profile: Profile | null; videos: Video[]; renders: Render[] }
 
 const MODOS: { id: DashboardMode; icon: string; nome: string; desc: string; cr: string }[] = [
-  { id: 'render_ia',        icon: '🎨', nome: 'Render IA',         desc: 'Transforma uma planta num render fotorrealista — 30 créditos fixo.',                                                            cr: '30 cr fixo' },
+  { id: 'render_ia',        icon: '🎨', nome: 'Studio IA',         desc: 'Transforma qualquer foto com IA: mobilar divisões, criar renders a partir de plantas, visualizar remodelações. 30 créditos fixo.',    cr: '30 cr fixo' },
   { id: 'standard',         icon: '🖼️', nome: 'Standard',          desc: 'Kling 3.0 Pro — qualidade cinematográfica, até 30 segundos.',                                                                   cr: '20 cr/s' },
   { id: 'pro',              icon: '⭐', nome: 'Pro',                desc: 'Seedance 2.0 — qualidade máxima, até 9 fotos de referência, máx. 10 segundos.',                                                 cr: '45 cr/s' },
   { id: 'antes_depois',     icon: '🔄', nome: 'Antes/Depois',       desc: 'Dois momentos, uma transformação, máx. 10 segundos.',                                                                           cr: '16 cr/s' },
@@ -432,11 +432,11 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
         ))
   )
 
-  const modoLabel = modo === 'render_ia' ? 'Render IA' : MODO_LABELS[modo as Modo]
+  const modoLabel = modo === 'render_ia' ? 'Studio IA' : MODO_LABELS[modo as Modo]
   const activePollingSeconds = renderPollingId ? renderPollingSeconds : pollingSeconds
 
   const uploadLabel =
-    modo === 'render_ia'        ? 'Carrega a planta ou esboço' :
+    modo === 'render_ia'        ? 'Carrega uma foto ou planta' :
     modo === 'video_video'      ? 'Carrega o vídeo' :
     modo === 'antes_depois'     ? 'Carrega as duas fotos' :
     modo === 'projeto_aprovado' ? 'Carrega a foto e a planta' : 'Carrega a foto'
@@ -547,7 +547,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
         {/* Formulário */}
         <div className="mb-10 p-6 rounded-2xl" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
           <h2 className="text-lg font-bold mb-6" style={{ color: '#1A1A2E' }}>
-            {modo === 'render_ia' ? 'Gerar novo Render IA' : 'Gerar novo vídeo'}
+            {modo === 'render_ia' ? 'Gerar nova imagem com Studio IA' : 'Gerar novo vídeo'}
           </h2>
           <form onSubmit={handleGenerate} className="space-y-6">
 
@@ -584,7 +584,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
               {modo === 'render_ia' && (
                 <>
                   <UploadZone accept="plan" preview={renderIaPreview}
-                    label="Arrasta a planta ou esboço ou clica para selecionar"
+                    label="Arrasta uma foto, planta ou esboço — ou clica para selecionar"
                     dragOver={dragOver === 'render_ia'}
                     onDragOver={() => setDragOver('render_ia')} onDragLeave={() => setDragOver(null)}
                     onDrop={e => { e.preventDefault(); setDragOver(null); const f = e.dataTransfer.files[0]; if (f) handleRenderIaFile(f) }}
@@ -771,7 +771,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                 <>
                   <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                     <div style={{ color: '#6B7280' }}>Modo</div>
-                    <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>Render IA</div>
+                    <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>Studio IA</div>
                     <div style={{ color: '#6B7280' }}>Estilo</div>
                     <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>{renderStyle}</div>
                     <div style={{ color: '#6B7280' }}>Créditos disponíveis</div>
@@ -842,7 +842,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                   </svg>
                   <span className="font-semibold" style={{ color: '#00B894' }}>
                     {(pollingId || renderPollingId)
-                      ? (renderPollingId ? 'A gerar o render com IA...' : 'A gerar o vídeo com IA...')
+                      ? (renderPollingId ? 'A gerar a imagem com Studio IA...' : 'A gerar o vídeo com IA...')
                       : 'A preparar e enviar...'}
                   </span>
                   {(pollingId || renderPollingId) && (
@@ -854,7 +854,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                 <p className="text-xs mb-3" style={{ color: '#6B7280' }}>
                   {(pollingId || renderPollingId)
                     ? (renderPollingId
-                        ? 'A IA está a gerar o teu render. Normalmente demora 1 a 3 minutos. Podes continuar a navegar.'
+                        ? 'O Studio IA está a gerar a tua imagem. Normalmente demora 1 a 3 minutos. Podes continuar a navegar.'
                         : `A IA está a processar o teu vídeo. Tempo normal de espera: ${PLANO_WAIT[plano] || '—'}. Podes continuar a navegar.`)
                     : 'A otimizar o prompt e submeter para geração...'}
                 </p>
@@ -863,7 +863,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                     onClick={() => { setRenderPollingId(null); setLoading(false); setRenderPollingSeconds(0) }}
                     className="text-xs font-semibold px-3 py-1.5 rounded-lg"
                     style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}>
-                    Cancelar espera e gerar outro render →
+                    Cancelar espera e gerar outra imagem →
                   </button>
                 )}
                 {pollingId && (
@@ -893,7 +893,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                   A gerar...
                 </>
               ) : modo === 'render_ia'
-                  ? `Gerar Render — ${CREDITOS_RENDER_IA} créditos`
+                  ? `Gerar com Studio IA — ${CREDITOS_RENDER_IA} créditos`
                   : `Gerar Vídeo — ${creditosNecessarios.toLocaleString('pt-PT')} crédito${creditosNecessarios !== 1 ? 's' : ''}`}
             </button>
           </form>
@@ -903,7 +903,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
         {renderResult && renderResult.status === 'completed' && renderResult.render_url && (
           <div className="mb-10 p-6 rounded-2xl" style={{ background: '#FFFFFF', border: '2px solid #A855F7', boxShadow: '0 2px 16px rgba(168,85,247,0.15)' }}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold" style={{ color: '#1A1A2E' }}>🎨 Render IA concluído!</h2>
+              <h2 className="text-lg font-bold" style={{ color: '#1A1A2E' }}>🎨 Studio IA concluído!</h2>
               <button type="button" onClick={() => setRenderResult(null)} className="text-sm font-medium" style={{ color: '#9CA3AF' }}>✕ Fechar</button>
             </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -922,7 +922,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
               <button type="button" onClick={() => { setRenderResult(null); setModo('render_ia') }}
                 className="py-3 px-4 rounded-xl font-semibold text-sm transition-all"
                 style={{ background: '#F3E8FF', color: '#9333EA', border: '1px solid #A855F7' }}>
-                🔄 Gerar novo render
+                🔄 Gerar nova imagem
               </button>
               <a href={renderResult.render_url} download target="_blank" rel="noopener noreferrer"
                 className="py-3 px-4 rounded-xl font-semibold text-sm"
@@ -950,15 +950,15 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
         {/* Histórico — Renders */}
         <div>
-          <h2 className="text-lg font-bold mb-4" style={{ color: '#1A1A2E' }}>Os meus renders</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#1A1A2E' }}>As minhas imagens Studio IA</h2>
           {renders.length === 0 ? (
             <div className="text-center py-12 rounded-2xl" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB' }}>
               <div className="text-4xl mb-3">🎨</div>
-              <p className="text-sm" style={{ color: '#9CA3AF' }}>Ainda não geraste nenhum Render IA.</p>
+              <p className="text-sm" style={{ color: '#9CA3AF' }}>Ainda não geraste nenhuma imagem com Studio IA.</p>
               <button type="button" onClick={() => { setModo('render_ia'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
                 className="mt-3 text-xs font-semibold px-4 py-2 rounded-lg"
                 style={{ background: '#F3E8FF', color: '#9333EA', border: '1px solid #A855F7' }}>
-                Experimentar Render IA →
+                Experimentar Studio IA →
               </button>
             </div>
           ) : (
@@ -1122,10 +1122,10 @@ function RenderCard({ render, onUsar }: { render: Render; onUsar: (r: Render) =>
         <div className="flex items-start gap-2 mb-3">
           <div className="flex-1">
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F3E8FF', color: '#9333EA' }}>
-              🎨 Render IA
+              🎨 Studio IA
             </span>
             <p className="text-sm mt-1.5 leading-snug" style={{ color: '#374151' }}>
-              {render.style || 'Render IA'}
+              {render.style || 'Studio IA'}
             </p>
           </div>
           <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-semibold"
