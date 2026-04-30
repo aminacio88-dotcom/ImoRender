@@ -79,7 +79,8 @@ export async function POST(request: Request) {
     if (!aspectRatios.includes(aspectRatio))
       return NextResponse.json({ error: 'Formato inválido.' }, { status: 400 })
 
-    const maxDuracao = modo === 'projeto_aprovado' ? 15 : 30
+    const isVeo31 = ['standard', 'pro'].includes(modo)
+    const maxDuracao = modo === 'projeto_aprovado' ? 15 : isVeo31 ? 8 : 30
     const duracaoNum = Math.min(Math.max(Math.floor(Number(duracao)), 1), maxDuracao)
 
     if (['standard', 'pro'].includes(modo)) {
@@ -148,9 +149,11 @@ export async function POST(request: Request) {
 
     // Upload ficheiros para o CDN do fal.ai
     const falModel = FAL_MODELS[modo as Modo]
-    const durationStr = modo === 'projeto_aprovado'
-      ? (duracaoNum <= 5 ? '5' : duracaoNum <= 10 ? '10' : '15')
-      : (duracaoNum <= 5 ? '5' : '10')
+    const durationStr = isVeo31
+      ? (duracaoNum <= 4 ? '4s' : duracaoNum <= 6 ? '6s' : '8s')
+      : modo === 'projeto_aprovado'
+        ? (duracaoNum <= 5 ? '5' : duracaoNum <= 10 ? '10' : '15')
+        : (duracaoNum <= 5 ? '5' : '10')
     const falInput: Record<string, unknown> = {
       prompt: promptOtimizado,
       duration: durationStr,

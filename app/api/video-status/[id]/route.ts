@@ -56,7 +56,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
     }
 
     try {
-      const statusUrl = `https://queue.fal.run/${video.modelo_usado}/requests/${video.fal_request_id}/status`
+      // Status URL uses base model (first 2 path segments) — fal.ai queue routing
+      const baseModel = video.modelo_usado.split('/').slice(0, 2).join('/')
+      const statusUrl = `https://queue.fal.run/${baseModel}/requests/${video.fal_request_id}/status`
       console.log('Checking status:', statusUrl)
 
       const statusRes = await fetch(statusUrl, {
