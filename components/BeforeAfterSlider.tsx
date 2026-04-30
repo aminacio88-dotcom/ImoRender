@@ -2,8 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 
-const BEFORE_URL = 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1200'
-const AFTER_URL  = 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200'
+const BEFORE_URL = 'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=1200'
+const AFTER_URL  = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1200'
 
 export default function BeforeAfterSlider() {
   const [pos, setPos] = useState(50)
@@ -42,14 +42,14 @@ export default function BeforeAfterSlider() {
   }, [calcPos])
 
   return (
-    <section className="py-24 px-4" style={{ background: '#1A1A2E' }}>
+    <section className="py-24 px-4" style={{ background: '#F1F3F5' }}>
       <div className="max-w-5xl mx-auto">
 
-        <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-3" style={{ color: '#FFFFFF' }}>
+        <div className="text-center mb-14">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: '#1A1A2E' }}>
             Vê a diferença em tempo real
           </h2>
-          <p className="text-base" style={{ color: 'rgba(255,255,255,0.55)' }}>
+          <p className="text-base" style={{ color: '#6B7280' }}>
             Arrasta para descobrir o potencial de qualquer espaço
           </p>
         </div>
@@ -62,7 +62,7 @@ export default function BeforeAfterSlider() {
             cursor: 'ew-resize',
             touchAction: 'none',
             userSelect: 'none',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
           }}
           onMouseDown={e => { dragging.current = true; calcPos(e.clientX) }}
           onTouchStart={e => { dragging.current = true; calcPos(e.touches[0].clientX) }}
@@ -109,16 +109,16 @@ export default function BeforeAfterSlider() {
             style={{
               left: `${pos}%`,
               transform: 'translate(-50%, -50%)',
-              width: 46,
-              height: 46,
+              width: 42,
+              height: 42,
               background: '#FFFFFF',
-              boxShadow: '0 0 0 3px rgba(255,255,255,0.25), 0 4px 24px rgba(0,0,0,0.55)',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
               zIndex: 11,
               pointerEvents: 'none',
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-              stroke="#1A1A2E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="#6B7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18L3 12l6-6" />
               <path d="M15 6l6 6-6 6" />
             </svg>
@@ -126,28 +126,28 @@ export default function BeforeAfterSlider() {
 
           {/* Label ANTES */}
           <div
-            className="absolute top-4 left-4"
-            style={{ zIndex: 12, opacity: pos > 12 ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: 'none' }}
+            className="absolute top-3 left-3"
+            style={{ zIndex: 12, opacity: pos > 10 ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: 'none' }}
           >
-            <span className="px-3 py-1.5 rounded-lg text-sm font-bold"
-              style={{ background: 'rgba(0,0,0,0.6)', color: '#FFFFFF', backdropFilter: 'blur(6px)' }}>
+            <span className="px-2.5 py-1 rounded-md text-xs font-semibold"
+              style={{ background: 'rgba(0,0,0,0.5)', color: '#FFFFFF', backdropFilter: 'blur(4px)' }}>
               Antes
             </span>
           </div>
 
           {/* Label DEPOIS */}
           <div
-            className="absolute top-4 right-4"
-            style={{ zIndex: 12, opacity: pos < 88 ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: 'none' }}
+            className="absolute top-3 right-3"
+            style={{ zIndex: 12, opacity: pos < 90 ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: 'none' }}
           >
-            <span className="px-3 py-1.5 rounded-lg text-sm font-bold"
-              style={{ background: 'rgba(0,212,170,0.85)', color: '#FFFFFF', backdropFilter: 'blur(6px)' }}>
+            <span className="px-2.5 py-1 rounded-md text-xs font-semibold"
+              style={{ background: 'rgba(0,0,0,0.5)', color: '#FFFFFF', backdropFilter: 'blur(4px)' }}>
               Depois
             </span>
           </div>
         </div>
 
-        <p className="text-center text-xs mt-5" style={{ color: 'rgba(255,255,255,0.25)' }}>
+        <p className="text-center text-xs mt-5" style={{ color: '#9CA3AF' }}>
           Exemplo gerado com ImoRender Studio IA
         </p>
       </div>
