@@ -139,10 +139,10 @@ export async function POST(request: Request) {
     let promptOtimizado = `Professional real estate video: ${promptPortugues}`
     try {
       const claudeRes = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 200,
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
         system: SYSTEM_PROMPTS[modo as Modo],
-        messages: [{ role: 'user', content: promptPortugues }],
+        messages: [{ role: 'user', content: `User description: ${promptPortugues}\nVideo mode: ${modo}\nGenerate the optimised English prompt.` }],
       })
       if (claudeRes.content[0].type === 'text') promptOtimizado = claudeRes.content[0].text.trim()
     } catch (err) {

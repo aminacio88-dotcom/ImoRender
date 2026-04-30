@@ -20,7 +20,13 @@ const ESTILOS: Record<string, string> = {
   'Clássico':            'classic staging, elegant furniture, rich fabrics, ornate traditional decor',
 }
 
-const SYSTEM_PROMPT = `You are an expert AI apartment staging prompt engineer. Create a single clean English sentence describing the furniture, decor, and style to add to this empty room. Include specific furniture pieces, colors, materials, and ambiance. Return ONLY the prompt text, under 200 characters, no formatting.`
+const SYSTEM_PROMPT = `You are an expert AI image generation prompt engineer specialised in real estate and interior design photography. Your job is to convert a user's description in Portuguese into a precise, technical English prompt for an AI image generation model.
+The prompt must:
+- Be between 50 and 120 words
+- Use photographic and interior design terminology
+- Describe lighting, materials, camera angle, atmosphere and style
+- Never include negative prompts
+- Return ONLY the prompt, no explanations, no preamble`
 
 function getSupabase() {
   const cookieStore = cookies()
@@ -79,14 +85,14 @@ export async function POST(request: Request) {
 
     // Optimizar prompt com Claude
     const styleDesc = ESTILOS[style]
-    const userContext = promptPortugues ? ` Pedido do utilizador: ${promptPortugues}` : ''
+
     let promptOtimizado = `Stage this room with ${styleDesc}, photorealistic interior photography`
     try {
       const claudeRes = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 200,
-        system: SYSTEM_PROMPT + ` Style: ${style} — ${styleDesc}.`,
-        messages: [{ role: 'user', content: `Empty room photo to stage with furniture and decor. Style: ${style}.${userContext}` }],
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: `User description: ${promptPortugues || 'Furnish and decorate this empty room'}\nRoom type: empty room to be furnished and staged\nDesired style: ${style} — ${styleDesc}\nGenerate the optimised English prompt.` }],
       })
       if (claudeRes.content[0].type === 'text') promptOtimizado = claudeRes.content[0].text.trim()
     } catch (err) {

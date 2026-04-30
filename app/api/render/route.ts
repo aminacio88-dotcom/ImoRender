@@ -22,7 +22,13 @@ const RENDER_STYLES: Record<string, string> = {
   'Clássico':            'classic interior design, ornate details, rich fabrics, traditional furniture, elegant decor',
 }
 
-const SYSTEM_PROMPT = `You are an expert prompt engineer for Flux Pro Kontext, an image editing model. Your task is to create a prompt that transforms the uploaded floor plan or room image into a photorealistic interior render. Write a single clean English sentence describing the photorealistic result. Include: the style, natural lighting, high-quality materials, realistic shadows and reflections. Return ONLY the prompt text, under 200 characters, no formatting.`
+const SYSTEM_PROMPT = `You are an expert AI image generation prompt engineer specialised in real estate and interior design photography. Your job is to convert a user's description in Portuguese into a precise, technical English prompt for an AI image generation model.
+The prompt must:
+- Be between 50 and 120 words
+- Use photographic and interior design terminology
+- Describe lighting, materials, camera angle, atmosphere and style
+- Never include negative prompts
+- Return ONLY the prompt, no explanations, no preamble`
 
 function getSupabase() {
   const cookieStore = cookies()
@@ -82,16 +88,16 @@ export async function POST(request: Request) {
 
     // Build base prompt
     const styleDesc = RENDER_STYLES[style]
-    const userContext = promptPortugues ? ` Additional context: ${promptPortugues}` : ''
+
 
     // Optimize prompt with Claude
     let promptOtimizado = `Photorealistic interior render, ${styleDesc}, architectural visualization, 8K quality`
     try {
       const claudeRes = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 200,
-        system: SYSTEM_PROMPT + ` Style requested: ${style} — ${styleDesc}.`,
-        messages: [{ role: 'user', content: `Floor plan/sketch to render. Style: ${style}.${userContext} Create a photorealistic render prompt.` }],
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: `User description: ${promptPortugues || 'Transform this floor plan or room photo into a photorealistic interior render'}\nRoom type: interior room / floor plan\nDesired style: ${style} — ${styleDesc}\nGenerate the optimised English prompt.` }],
       })
       if (claudeRes.content[0].type === 'text') promptOtimizado = claudeRes.content[0].text.trim()
     } catch (err) {
