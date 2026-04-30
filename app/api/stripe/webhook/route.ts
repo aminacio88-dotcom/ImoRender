@@ -5,9 +5,9 @@ import { createClient } from '@supabase/supabase-js'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
 
 const CREDITS_MAP: Record<string, number> = {
-  starter: 1000,
-  team: 3200,
-  agency: 12000,
+  starter: 3000,
+  team: 8000,
+  agency: 25000,
 }
 
 function getSupabaseAdmin() {
