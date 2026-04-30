@@ -14,11 +14,11 @@ const MAX_IMAGE_SIZE = 14 * 1024 * 1024
 const MAX_VIDEO_SIZE = 70 * 1024 * 1024
 
 const SYSTEM_PROMPTS: Record<Modo, string> = {
-  standard:         'You are a prompt engineer for Kling AI image-to-video. Convert the Portuguese description into a single clean English sentence, maximum 200 characters. No formatting, no bullet points, no headers, no special characters. Describe the visual result and camera movement. No people or faces. Output only the sentence.',
-  pro:              'You are a prompt engineer for Kling AI image-to-video. Convert the Portuguese description into a single clean English sentence, maximum 200 characters. No formatting, no bullet points, no headers, no special characters. Describe the visual result and cinematic camera movement in detail. No people or faces. Output only the sentence.',
+  standard:         'You are a prompt engineer for Kling 3.0 Pro image-to-video. Convert the Portuguese description into a single clean English sentence, maximum 200 characters. No formatting, no bullet points, no headers, no special characters. Describe the visual result and camera movement. No people or faces. Output only the sentence.',
+  pro:              'You are a prompt engineer for Seedance 2.0 image-to-video. The uploaded photo is referenced as @Image1 in the prompt. Convert the Portuguese description into a single clean English sentence referencing @Image1 as the main subject. Maximum 200 characters. No formatting, no bullet points, no headers, no special characters. Describe the visual result and cinematic camera movement in detail. No people or faces. Output only the sentence.',
   antes_depois:     'You are a prompt engineer for Kling AI transition video. Convert the Portuguese description into a single clean English sentence, maximum 200 characters. No formatting, no bullet points, no headers. Describe the visual transition between the two images. No people or faces. Output only the sentence.',
   video_video:      'You are a prompt engineer for Kling AI video transformation. Convert the Portuguese description into a single clean English sentence, maximum 200 characters. No formatting, no bullet points, no headers. Describe the visual transformation to apply to the footage. No people or faces. Output only the sentence.',
-  projeto_aprovado: 'You are an expert at creating prompts for AI video generation of architectural projects in real estate. The user has a terrain photo and a 3D render or 3D architectural visualization (@Element1). Create a professional English prompt that instructs the AI to place and build the house from the 3D render @Element1 on the terrain shown in the main image. Focus on: realistic placement on the exact terrain, matching the 3D design details, aerial drone perspective, photorealistic quality, same scale as neighboring houses. Under 200 characters. No people or faces.',
+  projeto_aprovado: 'You are an expert at creating prompts for Seedance 2.0 AI video generation of architectural projects. @Image1 is the terrain photo and @Image2 is the architectural plan or 3D render. Create a professional English prompt that references @Image1 and @Image2, instructing the AI to build the structure from @Image2 on the terrain in @Image1. Focus on: realistic placement on the exact terrain, drone aerial perspective, photorealistic quality, same scale as neighboring buildings. Under 200 characters. No people or faces.',
 }
 
 function getSupabase() {
@@ -79,8 +79,10 @@ export async function POST(request: Request) {
     if (!aspectRatios.includes(aspectRatio))
       return NextResponse.json({ error: 'Formato inválido.' }, { status: 400 })
 
-    const isVeo31 = ['standard', 'pro'].includes(modo)
-    const maxDuracao = modo === 'projeto_aprovado' ? 15 : isVeo31 ? 8 : 30
+    const MODO_MAX: Record<string, number> = {
+      standard: 30, pro: 10, antes_depois: 10, video_video: 30, projeto_aprovado: 10,
+    }
+    const maxDuracao = MODO_MAX[modo] || 10
     const duracaoNum = Math.min(Math.max(Math.floor(Number(duracao)), 1), maxDuracao)
 
     if (['standard', 'pro'].includes(modo)) {
@@ -149,23 +151,34 @@ export async function POST(request: Request) {
 
     // Upload ficheiros para o CDN do fal.ai
     const falModel = FAL_MODELS[modo as Modo]
-    const durationStr = isVeo31
-      ? (duracaoNum <= 4 ? '4s' : duracaoNum <= 6 ? '6s' : '8s')
-      : modo === 'projeto_aprovado'
-        ? (duracaoNum <= 5 ? '5' : duracaoNum <= 10 ? '10' : '15')
-        : (duracaoNum <= 5 ? '5' : '10')
-    const falInput: Record<string, unknown> = {
-      prompt: promptOtimizado,
-      duration: durationStr,
-      aspect_ratio: aspectRatio,
+    const isSeedance = modo === 'pro' || modo === 'projeto_aprovado'
+
+    // Duration: Seedance uses number (5 or 10), Kling v3 uses string number, Kling v1.6 uses "5"/"10"
+    let durationParam: string | number
+    if (isSeedance) {
+      durationParam = duracaoNum <= 5 ? 5 : 10
+    } else if (modo === 'standard') {
+      durationParam = String(duracaoNum)
+    } else {
+      durationParam = duracaoNum <= 5 ? '5' : '10'
     }
 
+    // Base falInput — Seedance uses resolution+audio, Kling uses aspect_ratio
+    const falInput: Record<string, unknown> = isSeedance
+      ? { prompt: promptOtimizado, duration: durationParam, resolution: '720p', audio: false }
+      : { prompt: promptOtimizado, duration: durationParam, aspect_ratio: aspectRatio }
+
     try {
-      if (modo === 'standard' || modo === 'pro') {
+      if (modo === 'standard') {
         const ext = imageMimeType.split('/')[1] || 'jpg'
         const url = await uploadToFalCDN(imageBase64, imageMimeType, `image.${ext}`)
-        console.log('Image CDN URL:', url)
+        console.log('Standard image CDN URL:', url)
         falInput.image_url = url
+      } else if (modo === 'pro') {
+        const ext = imageMimeType.split('/')[1] || 'jpg'
+        const url = await uploadToFalCDN(imageBase64, imageMimeType, `image.${ext}`)
+        console.log('Pro image CDN URL:', url)
+        falInput.image_urls = [url]
       } else if (modo === 'antes_depois') {
         const ext = imageMimeType.split('/')[1] || 'jpg'
         const extTail = tailImageMimeType.split('/')[1] || 'jpg'
@@ -179,9 +192,9 @@ export async function POST(request: Request) {
       } else if (modo === 'projeto_aprovado') {
         const extTerrain = imageMimeType.split('/')[1] || 'jpg'
         const extPlan = planImageMimeType.split('/')[1] || 'jpg'
-        falInput.image_url = await uploadToFalCDN(imageBase64, imageMimeType, `terrain.${extTerrain}`)
+        const terrainUrl = await uploadToFalCDN(imageBase64, imageMimeType, `terrain.${extTerrain}`)
         const planUrl = await uploadToFalCDN(planImageBase64, planImageMimeType, `plan.${extPlan}`)
-        falInput.elements = [{ image_url: planUrl, name: 'Element1' }]
+        falInput.image_urls = [terrainUrl, planUrl]  // @Image1=terreno, @Image2=planta
         console.log('Projeto aprovado CDN URLs uploaded')
       }
     } catch (err) {

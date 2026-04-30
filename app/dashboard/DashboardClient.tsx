@@ -10,12 +10,12 @@ import type { Profile, Video, Modo, AspectRatio, Render, DashboardMode } from '@
 interface Props { profile: Profile | null; videos: Video[]; renders: Render[] }
 
 const MODOS: { id: DashboardMode; icon: string; nome: string; desc: string; cr: string }[] = [
-  { id: 'render_ia',        icon: '🎨', nome: 'Render IA',         desc: 'Transforma uma planta ou esboço numa visualização fotorrealista. 30 créditos fixo.',                                           cr: '30 cr fixo' },
-  { id: 'standard',         icon: '🖼️', nome: 'Standard',          desc: 'Uma foto, movimento natural. Ideal para imóveis e terrenos.',                                                                    cr: '15 cr/s' },
-  { id: 'pro',              icon: '⭐', nome: 'Pro',                desc: 'Uma foto, qualidade cinematográfica. Resultados premium.',                                                                       cr: '30 cr/s' },
-  { id: 'antes_depois',     icon: '🔄', nome: 'Antes/Depois',       desc: 'Duas fotos. O vídeo transforma a primeira na segunda.',                                                                          cr: '16 cr/s' },
-  { id: 'video_video',      icon: '🎬', nome: 'Vídeo→Vídeo',        desc: 'Transforma um vídeo existente com IA.',                                                                                          cr: '12 cr/s' },
-  { id: 'projeto_aprovado', icon: '📐', nome: 'Projeto Aprovado',   desc: 'Carrega a foto do terreno e um render 3D ou planta 3D do projeto. A IA constrói a moradia com base na visualização 3D.',        cr: '50 cr/s' },
+  { id: 'render_ia',        icon: '🎨', nome: 'Render IA',         desc: 'Transforma uma planta num render fotorrealista — 30 créditos fixo.',                                                            cr: '30 cr fixo' },
+  { id: 'standard',         icon: '🖼️', nome: 'Standard',          desc: 'Kling 3.0 Pro — qualidade cinematográfica, até 30 segundos.',                                                                   cr: '20 cr/s' },
+  { id: 'pro',              icon: '⭐', nome: 'Pro',                desc: 'Seedance 2.0 — qualidade máxima, até 9 fotos de referência, máx. 10 segundos.',                                                 cr: '45 cr/s' },
+  { id: 'antes_depois',     icon: '🔄', nome: 'Antes/Depois',       desc: 'Dois momentos, uma transformação, máx. 10 segundos.',                                                                           cr: '16 cr/s' },
+  { id: 'video_video',      icon: '🎬', nome: 'Vídeo→Vídeo',        desc: 'Transforma um vídeo existente com IA.',                                                                                         cr: '12 cr/s' },
+  { id: 'projeto_aprovado', icon: '📐', nome: 'Projeto Aprovado',   desc: 'Seedance 2.0 Premium — planta + terreno, máx. 10 segundos.',                                                                   cr: '60 cr/s' },
 ]
 
 const RENDER_STYLES = ['Moderno Minimalista', 'Contemporâneo', 'Mediterrâneo', 'Industrial', 'Clássico']
@@ -90,8 +90,8 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   const creditosDisponiveis  = profile?.creditos ?? 0
   const creditosInsuficientes = creditosDisponiveis < creditosNecessarios
   const creditosAposFicar    = creditosDisponiveis - creditosNecessarios
-  const estimativaVideos     = Math.floor(creditosDisponiveis / 200)
-  const baixosCreditos       = creditosDisponiveis > 0 && creditosDisponiveis < 200
+  const estimativaVideos     = Math.floor(creditosDisponiveis / 100)
+  const baixosCreditos       = creditosDisponiveis > 0 && creditosDisponiveis < 300
   const semCreditos          = creditosDisponiveis === 0
   const plano                = profile?.plano || 'free'
 
@@ -102,7 +102,8 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
     setVideoFile(null)
     if (modo !== 'render_ia') { setRenderIaFile(null); setRenderIaPreview(null) }
     setError('')
-    if (modo === 'projeto_aprovado' && duracao > 15) setDuracao(15)
+    const maxDuracaoModo = ['pro', 'antes_depois', 'projeto_aprovado'].includes(modo) ? 10 : 30
+    if (duracao > maxDuracaoModo) setDuracao(maxDuracaoModo)
     // Apply pending image (from "Usar para vídeo" flow)
     if (pendingImageRef.current) {
       const { file, preview } = pendingImageRef.current
@@ -527,7 +528,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                 </p>
                 {estimativaVideos > 0 && (
                   <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
-                    Suficiente para ~{estimativaVideos} vídeo{estimativaVideos !== 1 ? 's' : ''} Pro de 10s
+                    Suficiente para aproximadamente {estimativaVideos} vídeo{estimativaVideos !== 1 ? 's' : ''} Standard de 5s
                   </p>
                 )}
               </div>
@@ -735,11 +736,14 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                   <label className="text-sm font-semibold" style={{ color: '#374151' }}>4. Duração</label>
                   <span className="text-sm font-bold" style={{ color: '#00D4AA' }}>{duracao} segundos</span>
                 </div>
-                <input type="range" min={1} max={modo === 'projeto_aprovado' ? 15 : 30} step={1} value={duracao}
+                <input type="range" min={1}
+                  max={['pro', 'antes_depois', 'projeto_aprovado'].includes(modo) ? 10 : 30}
+                  step={1} value={duracao}
                   onChange={e => setDuracao(Number(e.target.value))}
                   className="w-full" style={{ accentColor: '#00D4AA' }} />
                 <div className="flex justify-between text-xs mt-1" style={{ color: '#9CA3AF' }}>
-                  <span>1s</span><span>{modo === 'projeto_aprovado' ? '15s' : '30s'}</span>
+                  <span>1s</span>
+                  <span>{['pro', 'antes_depois', 'projeto_aprovado'].includes(modo) ? '10s' : '30s'}</span>
                 </div>
               </div>
             )}

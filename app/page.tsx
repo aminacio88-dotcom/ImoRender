@@ -19,49 +19,49 @@ const PLANOS = [
     wait: 'até 15 min',
     watermark: true,
     features: [
-      '50 créditos (1 vídeo de teste)',
-      'Modo Standard apenas',
+      '50 créditos',
+      'Aproximadamente 0 vídeos',
       'Tempo de espera até 15 min',
       'Marca de água ImoRender',
     ],
   },
   {
-    id: 'starter', nome: 'Starter', preco: 20.99, creditos: 1000, popular: false,
+    id: 'starter', nome: 'Starter', preco: 34.99, creditos: 3000, popular: false,
     descricao: 'Ideal para o consultor individual',
     wait: 'até 5 min',
     watermark: false,
     features: [
-      '1.000 créditos/mês',
-      '~10 vídeos Pro de 10s/mês',
+      '3.000 créditos/mês',
+      '~30 vídeos Standard de 5s',
       'Tempo de espera até 5 min',
       'Sem marca de água',
-      'Compra de créditos extra',
+      'Compra de créditos extra disponível',
     ],
   },
   {
-    id: 'team', nome: 'Team', preco: 59.99, creditos: 3200, popular: true,
+    id: 'team', nome: 'Team', preco: 79.99, creditos: 8000, popular: true,
     descricao: 'Para equipas de até 15 consultores',
     wait: 'até 2 min',
     watermark: false,
     features: [
-      '4.000 créditos/mês',
-      '~32 vídeos Pro de 10s/mês',
+      '8.000 créditos/mês',
+      '~80 vídeos Standard de 5s',
       'Tempo de espera até 2 min',
       'Sem marca de água',
-      'Compra de créditos extra',
+      'Compra de créditos extra disponível',
     ],
   },
   {
-    id: 'agency', nome: 'Agency', preco: 179.99, creditos: 12000, popular: false,
+    id: 'agency', nome: 'Agency', preco: 199.99, creditos: 25000, popular: false,
     descricao: 'Para agências com 15 a 50 consultores',
     wait: 'prioritário',
     watermark: false,
     features: [
-      '12.000 créditos/mês',
-      '~120 vídeos Pro de 10s/mês',
+      '25.000 créditos/mês',
+      '~250 vídeos Standard de 5s',
       'Processamento prioritário',
       'Sem marca de água',
-      'Compra de créditos extra',
+      'Compra de créditos extra disponível',
       'Suporte dedicado',
     ],
   },
@@ -74,7 +74,7 @@ const FAQS = [
   { q: 'Posso cancelar a qualquer momento?', r: 'Sim, sem penalizações nem contratos. Cancelas quando quiseres.' },
   { q: 'O que são créditos e como funcionam?', r: 'Créditos são a moeda do ImoRender. Cada vídeo consome créditos consoante a duração e a qualidade escolhida. Podes ver sempre quantos créditos vais gastar antes de gerar.' },
   { q: 'Posso comprar créditos extra?', r: 'Sim, em todos os planos pagos podes comprar créditos adicionais a qualquer momento sem fazer upgrade de plano.' },
-  { q: 'Qual a diferença entre Standard e Pro?', r: 'O modo Pro usa um modelo de IA mais avançado, gerando vídeos com maior detalhe arquitetónico, movimento de câmara mais cinematográfico e qualidade visual superior. Consome o dobro dos créditos.' },
+  { q: 'Qual a diferença entre Standard e Pro?', r: 'O Standard usa o modelo Kling 3.0 Pro — ideal para vídeos até 30 segundos. O Pro usa o Seedance 2.0, aceita até 9 fotos de referência e gera vídeos com qualidade máxima, limitados a 10 segundos. O modo Pro consome significativamente mais créditos.' },
 ]
 
 export default function LandingPage() {
@@ -325,7 +325,7 @@ export default function LandingPage() {
           </div>
 
           <p className="text-center text-sm mt-8" style={{ color: '#9CA3AF' }}>
-            Os créditos são flexíveis — podes usá-los em vídeos Standard, Pro, Antes/Depois ou Vídeo→Vídeo.<br />Cada modo consome créditos diferentes consoante a duração e qualidade.
+            Estimativa baseada em vídeos Standard de 5 segundos. O número real varia consoante duração e modo escolhido.
           </p>
         </div>
       </section>
@@ -338,7 +338,7 @@ export default function LandingPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: '🤖', titulo: 'Powered by Kling AI', desc: 'Utilizamos o modelo de geração de vídeo número 1 em qualidade no mundo em 2026, combinado com inteligência específica para imobiliário.' },
+              { icon: '🤖', titulo: 'Kling 3.0 Pro & Seedance 2.0', desc: 'Utilizamos os modelos de geração de vídeo de topo em 2026: Kling 3.0 Pro para o modo Standard e Seedance 2.0 para Pro e Projeto Aprovado — combinados com inteligência específica para imobiliário.' },
               { icon: '⚡', titulo: 'Otimização automática com IA', desc: 'O teu pedido em português é analisado e otimizado por inteligência artificial antes de gerar o vídeo — garantindo resultados profissionais sem esforço técnico.' },
               { icon: '🔒', titulo: 'Seguro e privado', desc: 'Os teus imóveis e dados são privados. Nunca partilhamos ou utilizamos as tuas imagens para outros fins.' },
             ].map((item, i) => (

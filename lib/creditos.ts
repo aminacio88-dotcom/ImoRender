@@ -1,11 +1,11 @@
 import type { Modo } from './types'
 
 const TAXAS: Record<Modo, number> = {
-  standard:         15,
-  pro:              30,
+  standard:         20,
+  pro:              45,
   antes_depois:     16,
   video_video:      12,
-  projeto_aprovado: 50,
+  projeto_aprovado: 60,
 }
 
 export function calcularCreditos(modo: Modo, segundos: number): number {
@@ -16,11 +16,11 @@ export function calcularCreditos(modo: Modo, segundos: number): number {
 }
 
 export const FAL_MODELS: Record<Modo, string> = {
-  standard:         'fal-ai/veo3.1/fast/image-to-video',
-  pro:              'fal-ai/veo3.1/image-to-video',
+  standard:         'fal-ai/kling-video/v3/pro/image-to-video',
+  pro:              'bytedance/seedance-2.0/fast/reference-to-video',
   antes_depois:     'fal-ai/kling-video/v1.6/pro/image-to-video',
   video_video:      'fal-ai/kling-video/v1.6/standard/image-to-video',
-  projeto_aprovado: 'fal-ai/kling-video/o3/pro/image-to-video',
+  projeto_aprovado: 'bytedance/seedance-2.0/reference-to-video',
 }
 
 export const MODO_LABELS: Record<Modo, string> = {

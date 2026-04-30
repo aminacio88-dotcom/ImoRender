@@ -133,7 +133,7 @@ export default function PlanosClient({
       </div>
 
       <p className="text-center text-sm mt-6" style={{ color: '#9CA3AF' }}>
-        Os créditos são flexíveis — podes usá-los em vídeos Standard, Pro, Antes/Depois, Vídeo→Vídeo ou Projeto Aprovado. Cada modo consome créditos diferentes consoante a duração e qualidade.
+        Os créditos são flexíveis — o número de vídeos varia consoante a duração e o modo escolhido. Vídeos mais longos ou em modos premium consomem mais créditos.
       </p>
 
       {/* Credit packs — só para planos pagos */}
