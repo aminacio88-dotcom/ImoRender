@@ -9,8 +9,20 @@ import type { Profile, Video, Modo, AspectRatio, Render, DashboardMode } from '@
 
 interface Props { profile: Profile | null; videos: Video[]; renders: Render[] }
 
+type ModoColor = { color: string; bg: string; badgeBg: string; badgeText: string }
+const MODO_COLORS: Record<string, ModoColor> = {
+  render_ia:        { color: '#A855F7', bg: '#FDF4FF', badgeBg: '#F3E8FF', badgeText: '#9333EA' },
+  mobilar_espaco:   { color: '#F97316', bg: '#FFF7ED', badgeBg: '#FFEDD5', badgeText: '#EA580C' },
+  standard:         { color: '#00D4AA', bg: '#F0FDF9', badgeBg: '#F0FDF9', badgeText: '#00B894' },
+  pro:              { color: '#00D4AA', bg: '#F0FDF9', badgeBg: '#F0FDF9', badgeText: '#00B894' },
+  antes_depois:     { color: '#00D4AA', bg: '#F0FDF9', badgeBg: '#F0FDF9', badgeText: '#00B894' },
+  video_video:      { color: '#00D4AA', bg: '#F0FDF9', badgeBg: '#F0FDF9', badgeText: '#00B894' },
+  projeto_aprovado: { color: '#00D4AA', bg: '#F0FDF9', badgeBg: '#F0FDF9', badgeText: '#00B894' },
+}
+
 const MODOS: { id: DashboardMode; icon: string; nome: string; desc: string; cr: string }[] = [
-  { id: 'render_ia',        icon: '🎨', nome: 'Studio IA',         desc: 'Transforma qualquer foto com IA: mobilar divisões, criar renders a partir de plantas, visualizar remodelações. 30 créditos fixo.',    cr: '30 cr fixo' },
+  { id: 'render_ia',        icon: '🎨', nome: 'Render',            desc: 'Transforma uma planta ou foto num render fotorrealista com IA. 30 créditos fixo.',                                               cr: '30 cr fixo' },
+  { id: 'mobilar_espaco',   icon: '🛋️', nome: 'Mobilar Espaço',    desc: 'Transforma uma divisão vazia numa divisão mobilada e decorada com IA. 30 créditos fixo.',                                       cr: '30 cr fixo' },
   { id: 'standard',         icon: '🖼️', nome: 'Standard',          desc: 'Kling 3.0 Pro — qualidade cinematográfica, até 30 segundos.',                                                                   cr: '20 cr/s' },
   { id: 'pro',              icon: '⭐', nome: 'Pro',                desc: 'Seedance 2.0 — qualidade máxima, até 9 fotos de referência, máx. 10 segundos.',                                                 cr: '45 cr/s' },
   { id: 'antes_depois',     icon: '🔄', nome: 'Antes/Depois',       desc: 'Dois momentos, uma transformação, máx. 10 segundos.',                                                                           cr: '16 cr/s' },
@@ -35,6 +47,7 @@ const VIDEO_PLACEHOLDERS: Record<string, string> = {
 }
 
 const RENDER_IA_PLACEHOLDER = 'Ex: Quero ver a cozinha com acabamentos em pedra natural e janelas amplas (opcional)'
+const MOBILAR_PLACEHOLDER   = 'Ex: Sofá em veludo azul, estantes em madeira natural, tapete creme (opcional)'
 
 export default function DashboardClient({ profile: initialProfile, videos: initialVideos, renders: initialRenders }: Props) {
   const router = useRouter()
@@ -60,7 +73,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   const [planFile, setPlanFile] = useState<File | null>(null)
   const [planPreview, setPlanPreview] = useState<string | null>(null)
   const [videoFile, setVideoFile] = useState<File | null>(null)
-  const [dragOver, setDragOver] = useState<'main' | 'tail' | 'plan' | 'render_ia' | null>(null)
+  const [dragOver, setDragOver] = useState<'main' | 'tail' | 'plan' | 'render_ia' | 'mobilar_espaco' | null>(null)
 
   // Render IA state
   const [renderStyle, setRenderStyle] = useState<string>('Moderno Minimalista')
@@ -83,7 +96,8 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   const renderIaFileRef = useRef<HTMLInputElement>(null)
   const pendingImageRef = useRef<{ file: File; preview: string } | null>(null)
 
-  const isVideoMode = modo !== 'render_ia'
+  const isImageMode = modo === 'render_ia' || modo === 'mobilar_espaco'
+  const isVideoMode = !isImageMode
   const creditosNecessarios = isVideoMode
     ? calcularCreditos(modo as Modo, duracao)
     : CREDITOS_RENDER_IA
@@ -100,8 +114,9 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
     setTailImageFile(null); setTailImagePreview(null)
     setPlanFile(null); setPlanPreview(null)
     setVideoFile(null)
-    if (modo !== 'render_ia') { setRenderIaFile(null); setRenderIaPreview(null) }
+    if (!isImageMode) { setRenderIaFile(null); setRenderIaPreview(null) }
     setError('')
+    if (isImageMode) return
     const maxDuracaoModo = ['pro', 'antes_depois', 'projeto_aprovado'].includes(modo) ? 10 : 30
     if (duracao > maxDuracaoModo) setDuracao(maxDuracaoModo)
     // Apply pending image (from "Usar para vídeo" flow)
@@ -336,11 +351,12 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
     setLoading(true); setError('')
 
     try {
-      // Render IA path
-      if (modo === 'render_ia') {
-        if (!renderIaFile) { setError('Carrega uma planta ou esboço.'); setLoading(false); return }
+      // Image generation paths (Render + Mobilar Espaço)
+      if (isImageMode) {
+        if (!renderIaFile) { setError('Carrega uma imagem.'); setLoading(false); return }
         const imageBase64 = await fileToBase64(renderIaFile)
-        const res = await fetch('/api/render', {
+        const endpoint = modo === 'mobilar_espaco' ? '/api/mobilar-espaco' : '/api/render'
+        const res = await fetch(endpoint, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             imageBase64,
@@ -422,7 +438,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
   const creditosPct = profile ? Math.min(100, Math.round((profile.creditos / profile.creditos_total) * 100)) : 0
   const canGenerate = !loading && !semCreditos && !creditosInsuficientes && (
-    modo === 'render_ia'
+    isImageMode
       ? !!renderIaFile
       : (prompt.trim() && (
           (modo === 'standard' || modo === 'pro') ? !!imageFile :
@@ -432,11 +448,12 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
         ))
   )
 
-  const modoLabel = modo === 'render_ia' ? 'Studio IA' : MODO_LABELS[modo as Modo]
+  const modoLabel = isImageMode ? (MODOS.find(m => m.id === modo)?.nome || modo) : MODO_LABELS[modo as Modo]
   const activePollingSeconds = renderPollingId ? renderPollingSeconds : pollingSeconds
 
   const uploadLabel =
     modo === 'render_ia'        ? 'Carrega uma foto ou planta' :
+    modo === 'mobilar_espaco'   ? 'Carrega uma foto da divisão' :
     modo === 'video_video'      ? 'Carrega o vídeo' :
     modo === 'antes_depois'     ? 'Carrega as duas fotos' :
     modo === 'projeto_aprovado' ? 'Carrega a foto e a planta' : 'Carrega a foto'
@@ -547,7 +564,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
         {/* Formulário */}
         <div className="mb-10 p-6 rounded-2xl" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
           <h2 className="text-lg font-bold mb-6" style={{ color: '#1A1A2E' }}>
-            {modo === 'render_ia' ? 'Gerar nova imagem com Studio IA' : 'Gerar novo vídeo'}
+            {isImageMode ? `Gerar nova imagem com ${modoLabel}` : 'Gerar novo vídeo'}
           </h2>
           <form onSubmit={handleGenerate} className="space-y-6">
 
@@ -559,14 +576,14 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                   <button key={m.id} type="button" onClick={() => setModo(m.id)}
                     className="p-4 rounded-xl text-left transition-all"
                     style={{
-                      background: modo === m.id ? (m.id === 'render_ia' ? '#FDF4FF' : '#F0FDF9') : '#F8F9FA',
-                      border: modo === m.id ? `2px solid ${m.id === 'render_ia' ? '#A855F7' : '#00D4AA'}` : '2px solid #E5E7EB',
+                      background: modo === m.id ? (MODO_COLORS[m.id]?.bg || '#F0FDF9') : '#F8F9FA',
+                      border: modo === m.id ? `2px solid ${MODO_COLORS[m.id]?.color || '#00D4AA'}` : '2px solid #E5E7EB',
                     }}>
                     <div className="text-2xl mb-2">{m.icon}</div>
                     <div className="font-bold text-sm mb-1" style={{ color: '#1A1A2E' }}>{m.nome}</div>
                     <div className="text-xs leading-relaxed mb-2" style={{ color: '#6B7280' }}>{m.desc}</div>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                      style={{ background: m.id === 'render_ia' ? '#F3E8FF' : '#F0FDF9', color: m.id === 'render_ia' ? '#9333EA' : '#00B894' }}>
+                      style={{ background: MODO_COLORS[m.id]?.badgeBg || '#F0FDF9', color: MODO_COLORS[m.id]?.badgeText || '#00B894' }}>
                       {m.cr}
                     </span>
                   </button>
@@ -580,13 +597,13 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                 2. {uploadLabel}
               </label>
 
-              {/* Render IA upload */}
-              {modo === 'render_ia' && (
+              {/* Render / Mobilar upload */}
+              {isImageMode && (
                 <>
                   <UploadZone accept="plan" preview={renderIaPreview}
-                    label="Arrasta uma foto, planta ou esboço — ou clica para selecionar"
-                    dragOver={dragOver === 'render_ia'}
-                    onDragOver={() => setDragOver('render_ia')} onDragLeave={() => setDragOver(null)}
+                    label={modo === 'mobilar_espaco' ? 'Arrasta uma foto da divisão — ou clica para selecionar' : 'Arrasta uma foto, planta ou esboço — ou clica para selecionar'}
+                    dragOver={dragOver === 'render_ia' || dragOver === 'mobilar_espaco'}
+                    onDragOver={() => setDragOver(modo === 'mobilar_espaco' ? 'mobilar_espaco' : 'render_ia')} onDragLeave={() => setDragOver(null)}
                     onDrop={e => { e.preventDefault(); setDragOver(null); const f = e.dataTransfer.files[0]; if (f) handleRenderIaFile(f) }}
                     onClick={() => renderIaFileRef.current?.click()}
                     onClear={() => { setRenderIaFile(null); setRenderIaPreview(null) }}
@@ -689,8 +706,8 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                 onChange={e => e.target.files?.[0] && handleVideoFile(e.target.files[0])} />
             </div>
 
-            {/* Passo 3 — Estilo (Render IA) */}
-            {modo === 'render_ia' && (
+            {/* Passo 3 — Estilo (imagens) */}
+            {isImageMode && (
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: '#374151' }}>3. Estilo de interiores</label>
                 <select value={renderStyle} onChange={e => setRenderStyle(e.target.value)}
@@ -702,7 +719,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
             )}
 
             {/* Passo 3 — Formato (modos de vídeo) */}
-            {modo !== 'render_ia' && (
+            {isVideoMode && (
               <div>
                 <label className="block text-sm font-semibold mb-3" style={{ color: '#374151' }}>3. Formato do vídeo</label>
                 <div className="flex gap-3">
@@ -730,7 +747,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
             )}
 
             {/* Passo 4 — Duração (modos de vídeo) */}
-            {modo !== 'render_ia' && (
+            {isVideoMode && (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-semibold" style={{ color: '#374151' }}>4. Duração</label>
@@ -751,35 +768,35 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
             {/* Passo 4/5 — Descrição */}
             <div>
               <label className="block text-sm font-semibold mb-2" style={{ color: '#374151' }}>
-                {modo === 'render_ia' ? '4.' : '5.'} {modo === 'render_ia' ? 'Descrição adicional (opcional)' : 'Descreve o resultado que pretendes'}
+                {isImageMode ? '4.' : '5.'} {isImageMode ? 'Descrição adicional (opcional)' : 'Descreve o resultado que pretendes'}
               </label>
               <textarea value={prompt} onChange={e => setPrompt(e.target.value)}
-                required={modo !== 'render_ia'} rows={3}
-                placeholder={modo === 'render_ia' ? RENDER_IA_PLACEHOLDER : VIDEO_PLACEHOLDERS[modo] || ''}
+                required={!isImageMode} rows={3}
+                placeholder={modo === 'mobilar_espaco' ? MOBILAR_PLACEHOLDER : isImageMode ? RENDER_IA_PLACEHOLDER : VIDEO_PLACEHOLDERS[modo] || ''}
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none transition-all"
                 style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', color: '#1A1A2E' }}
-                onFocus={e => e.target.style.borderColor = modo === 'render_ia' ? '#A855F7' : '#00D4AA'}
+                onFocus={e => e.target.style.borderColor = isImageMode ? (MODO_COLORS[modo]?.color || '#A855F7') : '#00D4AA'}
                 onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
             </div>
 
             {/* Resumo */}
             <div className="p-4 rounded-xl" style={{
-              background: modo === 'render_ia' ? '#FDF4FF' : '#F0FDF9',
-              border: `1px solid ${creditosInsuficientes ? '#FECACA' : modo === 'render_ia' ? '#A855F7' : '#00D4AA'}`,
+              background: isImageMode ? (MODO_COLORS[modo]?.bg || '#FDF4FF') : '#F0FDF9',
+              border: `1px solid ${creditosInsuficientes ? '#FECACA' : isImageMode ? (MODO_COLORS[modo]?.color || '#A855F7') : '#00D4AA'}`,
             }}>
-              {modo === 'render_ia' ? (
+              {isImageMode ? (
                 <>
                   <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                     <div style={{ color: '#6B7280' }}>Modo</div>
-                    <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>Studio IA</div>
+                    <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>{modoLabel}</div>
                     <div style={{ color: '#6B7280' }}>Estilo</div>
                     <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>{renderStyle}</div>
                     <div style={{ color: '#6B7280' }}>Créditos disponíveis</div>
                     <div className="font-semibold text-right" style={{ color: '#1A1A2E' }}>{creditosDisponiveis.toLocaleString('pt-PT')}</div>
                   </div>
-                  <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid #E9D5FF' }}>
+                  <div className="flex items-center justify-between pt-3" style={{ borderTop: `1px solid ${MODO_COLORS[modo]?.badgeBg || '#E9D5FF'}` }}>
                     <span className="text-sm font-semibold" style={{ color: '#374151' }}>Este render vai consumir</span>
-                    <span className="text-xl font-bold" style={{ color: creditosInsuficientes ? '#DC2626' : '#9333EA' }}>
+                    <span className="text-xl font-bold" style={{ color: creditosInsuficientes ? '#DC2626' : (MODO_COLORS[modo]?.color || '#9333EA') }}>
                       {CREDITOS_RENDER_IA} créditos
                     </span>
                   </div>
@@ -842,7 +859,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                   </svg>
                   <span className="font-semibold" style={{ color: '#00B894' }}>
                     {(pollingId || renderPollingId)
-                      ? (renderPollingId ? 'A gerar a imagem com Studio IA...' : 'A gerar o vídeo com IA...')
+                      ? (renderPollingId ? `A gerar a imagem com ${modoLabel}...` : 'A gerar o vídeo com IA...')
                       : 'A preparar e enviar...'}
                   </span>
                   {(pollingId || renderPollingId) && (
@@ -854,7 +871,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                 <p className="text-xs mb-3" style={{ color: '#6B7280' }}>
                   {(pollingId || renderPollingId)
                     ? (renderPollingId
-                        ? 'O Studio IA está a gerar a tua imagem. Normalmente demora 1 a 3 minutos. Podes continuar a navegar.'
+                        ? `O ${modoLabel} está a gerar a tua imagem. Normalmente demora 1 a 3 minutos. Podes continuar a navegar.`
                         : `A IA está a processar o teu vídeo. Tempo normal de espera: ${PLANO_WAIT[plano] || '—'}. Podes continuar a navegar.`)
                     : 'A otimizar o prompt e submeter para geração...'}
                 </p>
@@ -880,7 +897,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
             <button type="submit" disabled={!canGenerate}
               className="w-full py-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
               style={{
-                background: canGenerate ? (modo === 'render_ia' ? '#9333EA' : '#00D4AA') : '#E5E7EB',
+                background: canGenerate ? (isImageMode ? (MODO_COLORS[modo]?.color || '#9333EA') : '#00D4AA') : '#E5E7EB',
                 color:      canGenerate ? '#FFFFFF' : '#9CA3AF',
                 cursor:     canGenerate ? 'pointer' : 'not-allowed',
               }}>
@@ -892,8 +909,8 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                   </svg>
                   A gerar...
                 </>
-              ) : modo === 'render_ia'
-                  ? `Gerar com Studio IA — ${CREDITOS_RENDER_IA} créditos`
+              ) : isImageMode
+                  ? `Gerar com ${modoLabel} — ${CREDITOS_RENDER_IA} créditos`
                   : `Gerar Vídeo — ${creditosNecessarios.toLocaleString('pt-PT')} crédito${creditosNecessarios !== 1 ? 's' : ''}`}
             </button>
           </form>
@@ -901,9 +918,9 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
         {/* Render IA Result */}
         {renderResult && renderResult.status === 'completed' && renderResult.render_url && (
-          <div className="mb-10 p-6 rounded-2xl" style={{ background: '#FFFFFF', border: '2px solid #A855F7', boxShadow: '0 2px 16px rgba(168,85,247,0.15)' }}>
+          <div className="mb-10 p-6 rounded-2xl" style={{ background: '#FFFFFF', border: `2px solid ${renderResult.modo === 'mobilar_espaco' ? '#F97316' : '#A855F7'}`, boxShadow: `0 2px 16px rgba(${renderResult.modo === 'mobilar_espaco' ? '249,115,22' : '168,85,247'},0.15)` }}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold" style={{ color: '#1A1A2E' }}>🎨 Studio IA concluído!</h2>
+              <h2 className="text-lg font-bold" style={{ color: '#1A1A2E' }}>{renderResult.modo === 'mobilar_espaco' ? '🛋️ Mobilar Espaço concluído!' : '🎨 Render concluído!'}</h2>
               <button type="button" onClick={() => setRenderResult(null)} className="text-sm font-medium" style={{ color: '#9CA3AF' }}>✕ Fechar</button>
             </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -919,9 +936,9 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                 style={{ background: '#00D4AA', color: '#FFFFFF' }}>
                 🎬 Usar para vídeo Pro
               </button>
-              <button type="button" onClick={() => { setRenderResult(null); setModo('render_ia') }}
+              <button type="button" onClick={() => { setRenderResult(null); setModo(renderResult.modo === 'mobilar_espaco' ? 'mobilar_espaco' : 'render_ia') }}
                 className="py-3 px-4 rounded-xl font-semibold text-sm transition-all"
-                style={{ background: '#F3E8FF', color: '#9333EA', border: '1px solid #A855F7' }}>
+                style={{ background: renderResult.modo === 'mobilar_espaco' ? '#FFEDD5' : '#F3E8FF', color: renderResult.modo === 'mobilar_espaco' ? '#EA580C' : '#9333EA', border: `1px solid ${renderResult.modo === 'mobilar_espaco' ? '#F97316' : '#A855F7'}` }}>
                 🔄 Gerar nova imagem
               </button>
               <a href={renderResult.render_url} download target="_blank" rel="noopener noreferrer"
@@ -950,15 +967,15 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
 
         {/* Histórico — Renders */}
         <div>
-          <h2 className="text-lg font-bold mb-4" style={{ color: '#1A1A2E' }}>As minhas imagens Studio IA</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#1A1A2E' }}>Os meus Renders</h2>
           {renders.length === 0 ? (
             <div className="text-center py-12 rounded-2xl" style={{ background: '#FFFFFF', border: '1px solid #E5E7EB' }}>
               <div className="text-4xl mb-3">🎨</div>
-              <p className="text-sm" style={{ color: '#9CA3AF' }}>Ainda não geraste nenhuma imagem com Studio IA.</p>
+              <p className="text-sm" style={{ color: '#9CA3AF' }}>Ainda não geraste nenhum render ou imagem mobilada.</p>
               <button type="button" onClick={() => { setModo('render_ia'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
                 className="mt-3 text-xs font-semibold px-4 py-2 rounded-lg"
                 style={{ background: '#F3E8FF', color: '#9333EA', border: '1px solid #A855F7' }}>
-                Experimentar Studio IA →
+                Experimentar Render →
               </button>
             </div>
           ) : (
@@ -1121,11 +1138,14 @@ function RenderCard({ render, onUsar }: { render: Render; onUsar: (r: Render) =>
       <div className="p-4">
         <div className="flex items-start gap-2 mb-3">
           <div className="flex-1">
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F3E8FF', color: '#9333EA' }}>
-              🎨 Studio IA
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{
+              background: render.modo === 'mobilar_espaco' ? '#FFEDD5' : '#F3E8FF',
+              color: render.modo === 'mobilar_espaco' ? '#EA580C' : '#9333EA',
+            }}>
+              {render.modo === 'mobilar_espaco' ? '🛋️ Mobilar Espaço' : '🎨 Render'}
             </span>
             <p className="text-sm mt-1.5 leading-snug" style={{ color: '#374151' }}>
-              {render.style || 'Studio IA'}
+              {render.style}
             </p>
           </div>
           <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-semibold"

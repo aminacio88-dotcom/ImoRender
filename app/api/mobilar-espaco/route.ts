@@ -10,19 +10,17 @@ const FAL_KEY = process.env.FAL_KEY!
 fal.config({ credentials: FAL_KEY })
 
 const MAX_IMAGE_SIZE = 14 * 1024 * 1024
+const FAL_MODEL = 'fal-ai/flux-2-lora-gallery/apartment-staging'
 
-const FAL_MODEL_PRIMARY = 'fal-ai/flux-pro/kontext'
-const FAL_MODEL_FALLBACK = 'fal-ai/ideogram/v3'
-
-const RENDER_STYLES: Record<string, string> = {
-  'Moderno Minimalista': 'modern minimalist interior design, clean lines, neutral tones, uncluttered spaces',
-  'Contemporâneo':       'contemporary interior design, sleek finishes, open layout, stylish furniture',
-  'Mediterrâneo':        'mediterranean interior design, warm terracotta tones, arched windows, natural textures',
-  'Industrial':          'industrial interior design, exposed brick and concrete, metal accents, raw materials',
-  'Clássico':            'classic interior design, ornate details, rich fabrics, traditional furniture, elegant decor',
+const ESTILOS: Record<string, string> = {
+  'Moderno Minimalista': 'modern minimalist staging, clean lines, neutral palette, uncluttered elegant furniture',
+  'Contemporâneo':       'contemporary staging, sleek furniture, open layout, stylish decor accents',
+  'Mediterrâneo':        'mediterranean staging, warm terracotta tones, natural textures, cozy ambiance',
+  'Industrial':          'industrial staging, metal accents, raw materials, urban loft furniture',
+  'Clássico':            'classic staging, elegant furniture, rich fabrics, ornate traditional decor',
 }
 
-const SYSTEM_PROMPT = `You are an expert prompt engineer for Flux Pro Kontext, an image editing model. Your task is to create a prompt that transforms the uploaded floor plan or room image into a photorealistic interior render. Write a single clean English sentence describing the photorealistic result. Include: the style, natural lighting, high-quality materials, realistic shadows and reflections. Return ONLY the prompt text, under 200 characters, no formatting.`
+const SYSTEM_PROMPT = `You are an expert AI apartment staging prompt engineer. Create a single clean English sentence describing the furniture, decor, and style to add to this empty room. Include specific furniture pieces, colors, materials, and ambiance. Return ONLY the prompt text, under 200 characters, no formatting.`
 
 function getSupabase() {
   const cookieStore = cookies()
@@ -65,8 +63,7 @@ export async function POST(request: Request) {
     if (imageBase64.length > MAX_IMAGE_SIZE)
       return NextResponse.json({ error: 'A imagem não pode ter mais de 10MB.' }, { status: 400 })
 
-    const validStyles = Object.keys(RENDER_STYLES)
-    if (!validStyles.includes(style))
+    if (!Object.keys(ESTILOS).includes(style))
       return NextResponse.json({ error: 'Estilo inválido.' }, { status: 400 })
 
     const { data: profile } = await supabase
@@ -80,78 +77,66 @@ export async function POST(request: Request) {
       }, { status: 402 })
     }
 
-    // Build base prompt
-    const styleDesc = RENDER_STYLES[style]
-    const userContext = promptPortugues ? ` Additional context: ${promptPortugues}` : ''
-
-    // Optimize prompt with Claude
-    let promptOtimizado = `Photorealistic interior render, ${styleDesc}, architectural visualization, 8K quality`
+    // Optimizar prompt com Claude
+    const styleDesc = ESTILOS[style]
+    const userContext = promptPortugues ? ` Pedido do utilizador: ${promptPortugues}` : ''
+    let promptOtimizado = `Stage this room with ${styleDesc}, photorealistic interior photography`
     try {
       const claudeRes = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 200,
-        system: SYSTEM_PROMPT + ` Style requested: ${style} — ${styleDesc}.`,
-        messages: [{ role: 'user', content: `Floor plan/sketch to render. Style: ${style}.${userContext} Create a photorealistic render prompt.` }],
+        system: SYSTEM_PROMPT + ` Style: ${style} — ${styleDesc}.`,
+        messages: [{ role: 'user', content: `Empty room photo to stage with furniture and decor. Style: ${style}.${userContext}` }],
       })
       if (claudeRes.content[0].type === 'text') promptOtimizado = claudeRes.content[0].text.trim()
     } catch (err) {
       console.error('Claude error:', err)
     }
 
-    // Upload image to fal.ai CDN
+    // Upload da imagem para o CDN do fal.ai
     let imageUrl: string
     try {
       const ext = imageMimeType.split('/')[1] || 'jpg'
-      imageUrl = await uploadToFalCDN(imageBase64, imageMimeType, `floor_plan.${ext}`)
-      console.log('Render image CDN URL:', imageUrl)
+      imageUrl = await uploadToFalCDN(imageBase64, imageMimeType, `room.${ext}`)
+      console.log('Mobilar image CDN URL:', imageUrl)
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       return NextResponse.json({ error: `Erro ao enviar imagem: ${msg}` }, { status: 500 })
     }
 
-    // Submit to fal.ai queue (try primary, fallback to secondary)
+    // Submeter ao fal.ai
     let falRequestId: string | null = null
-    let modeloUsado = FAL_MODEL_PRIMARY
-
-    const falInput = { prompt: promptOtimizado, image_url: imageUrl }
-
-    for (const model of [FAL_MODEL_PRIMARY, FAL_MODEL_FALLBACK]) {
-      try {
-        console.log('Submitting render to fal.ai:', model)
-        const falRes = await fetch(`https://queue.fal.run/${model}`, {
-          method: 'POST',
-          headers: { 'Authorization': `Key ${FAL_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(falInput),
-        })
-        const falData = await falRes.json() as Record<string, unknown>
-        console.log('Fal render submit response:', JSON.stringify(falData).substring(0, 400))
-
-        if (falRes.ok && falData.request_id) {
-          falRequestId = falData.request_id as string
-          modeloUsado = model
-          break
-        }
-        console.warn(`Model ${model} failed:`, falData)
-      } catch (err) {
-        console.error(`Model ${model} error:`, err)
+    try {
+      console.log('Submitting mobilar-espaco to fal.ai:', FAL_MODEL)
+      const falRes = await fetch(`https://queue.fal.run/${FAL_MODEL}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Key ${FAL_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptOtimizado, image_url: imageUrl }),
+      })
+      const falData = await falRes.json() as Record<string, unknown>
+      console.log('Fal mobilar submit response:', JSON.stringify(falData).substring(0, 400))
+      if (!falRes.ok || !falData.request_id) {
+        const errMsg = (falData?.detail as string) || (falData?.error as string) || JSON.stringify(falData)
+        return NextResponse.json({ error: `Fal.ai: ${errMsg}` }, { status: 500 })
       }
+      falRequestId = falData.request_id as string
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      return NextResponse.json({ error: `Fal.ai: ${msg}` }, { status: 500 })
     }
 
-    if (!falRequestId)
-      return NextResponse.json({ error: 'Fal.ai não devolveu request_id.' }, { status: 500 })
-
-    // Create record in renders table
+    // Criar registo na tabela renders
     const { data: renderRecord, error: insertError } = await supabase
       .from('renders')
       .insert({
         user_id: session.user.id,
         input_image_url: imageUrl,
         style,
-        modo: 'render',
+        modo: 'mobilar_espaco',
         prompt_original: promptPortugues || '',
         prompt_otimizado: promptOtimizado,
         creditos_gastos: CREDITOS_RENDER_IA,
-        modelo_usado: modeloUsado,
+        modelo_usado: FAL_MODEL,
         fal_request_id: falRequestId,
         status: 'processing',
       })
@@ -159,10 +144,9 @@ export async function POST(request: Request) {
 
     if (insertError || !renderRecord) {
       console.error('Insert error:', insertError)
-      return NextResponse.json({ error: 'Erro ao criar registo do render.' }, { status: 500 })
+      return NextResponse.json({ error: 'Erro ao criar registo.' }, { status: 500 })
     }
 
-    // Debit credits
     await supabase.from('profiles')
       .update({ creditos: profile.creditos - CREDITOS_RENDER_IA })
       .eq('id', session.user.id)
@@ -170,7 +154,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ renderId: renderRecord.id, status: 'processing', creditosGastos: CREDITOS_RENDER_IA })
 
   } catch (err) {
-    console.error('Render API error:', err)
+    console.error('Mobilar-espaco API error:', err)
     return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 })
   }
 }

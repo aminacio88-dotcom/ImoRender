@@ -2,7 +2,7 @@ export type Plano = 'free' | 'starter' | 'team' | 'agency' | 'pro' | 'enterprise
 export type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type Qualidade = 'std' | 'pro'
 export type Modo = 'standard' | 'pro' | 'antes_depois' | 'video_video' | 'projeto_aprovado'
-export type DashboardMode = Modo | 'render_ia'
+export type DashboardMode = Modo | 'render_ia' | 'mobilar_espaco'
 export type AspectRatio = '16:9' | '9:16' | '1:1'
 export type RenderStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
@@ -50,6 +50,7 @@ export interface Render {
   input_image_url: string | null
   render_url: string | null
   style: string
+  modo: 'render' | 'mobilar_espaco' | null
   prompt_original: string
   prompt_otimizado: string
   creditos_gastos: number
