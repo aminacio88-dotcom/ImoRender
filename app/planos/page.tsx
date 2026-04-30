@@ -24,7 +24,7 @@ const PLANOS = [
     watermark: false,
     features: [
       '3.000 créditos/mês',
-      '~30 vídeos Standard de 5s',
+      '~30 vídeos Standard ',
       'Tempo de espera até 5 min',
       'Sem marca de água',
       'Compra de créditos extra disponível',
@@ -37,7 +37,7 @@ const PLANOS = [
     watermark: false,
     features: [
       '8.000 créditos/mês',
-      '~80 vídeos Standard de 5s',
+      '~80 vídeos Standard ',
       'Tempo de espera até 2 min',
       'Sem marca de água',
       'Compra de créditos extra disponível',
@@ -50,7 +50,7 @@ const PLANOS = [
     watermark: false,
     features: [
       '25.000 créditos/mês',
-      '~250 vídeos Standard de 5s',
+      '~250 vídeos Standard ',
       'Processamento prioritário',
       'Sem marca de água',
       'Compra de créditos extra disponível',
