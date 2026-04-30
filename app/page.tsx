@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { motion, type Variants, type Transition } from 'framer-motion'
+import BeforeAfterSlider from '@/components/BeforeAfterSlider'
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -267,6 +268,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Slider Antes/Depois */}
+      <BeforeAfterSlider />
 
       {/* Planos */}
       <section id="planos" className="py-24 px-4" style={{ background: '#FFFFFF' }}>
