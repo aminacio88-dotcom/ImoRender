@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
 
   const checkoutParams: Stripe.Checkout.SessionCreateParams = {
     mode: 'subscription',
+    payment_method_types: ['card', 'mb_way'],
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://imorender.netlify.app'}/dashboard?success=true`,
     cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://imorender.netlify.app'}/planos?canceled=true`,
