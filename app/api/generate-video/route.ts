@@ -166,7 +166,7 @@ export async function POST(request: Request) {
     // Base falInput — Seedance uses resolution+audio, Kling uses aspect_ratio
     const falInput: Record<string, unknown> = isSeedance
       ? { prompt: promptOtimizado, duration: durationParam, resolution: '720p', audio: false }
-      : { prompt: promptOtimizado, duration: durationParam, aspect_ratio: aspectRatio, enable_audio: false }
+      : { prompt: promptOtimizado, duration: durationParam, aspect_ratio: aspectRatio, audio: false }
 
     try {
       if (modo === 'standard') {
