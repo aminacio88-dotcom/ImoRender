@@ -10,7 +10,7 @@ const FAL_KEY = process.env.FAL_KEY!
 fal.config({ credentials: FAL_KEY })
 
 const MAX_IMAGE_SIZE = 14 * 1024 * 1024
-const FAL_MODEL = 'fal-ai/flux-2-lora-gallery/apartment-staging'
+const FAL_MODEL = 'fal-ai/flux-pro/kontext'
 
 const ESTILOS: Record<string, string> = {
   'Moderno Minimalista': 'modern minimalist staging, clean lines, neutral palette, uncluttered elegant furniture',
