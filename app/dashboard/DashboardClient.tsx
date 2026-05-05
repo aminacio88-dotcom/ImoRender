@@ -23,7 +23,7 @@ const MODO_COLORS: Record<string, ModoColor> = {
 const MODOS: { id: DashboardMode; icon: string; nome: string; desc: string; cr: string }[] = [
   { id: 'render_ia',        icon: '🎨', nome: 'Render',            desc: 'Transforma uma planta ou foto num render fotorrealista com IA. 30 créditos fixo.',                                               cr: '30 cr fixo' },
   { id: 'mobilar_espaco',   icon: '🛋️', nome: 'Mobilar Espaço',    desc: 'Transforma uma divisão vazia numa divisão mobilada e decorada com IA. 30 créditos fixo.',                                       cr: '30 cr fixo' },
-  { id: 'standard',         icon: '🖼️', nome: 'Standard',          desc: 'Kling 3.0 Pro — qualidade cinematográfica, até 30 segundos.',                                                                   cr: '20 cr/s' },
+  { id: 'standard',         icon: '🖼️', nome: 'Standard',          desc: 'Kling 3.0 Pro — qualidade cinematográfica, até 15 segundos.',                                                                   cr: '20 cr/s' },
   { id: 'pro',              icon: '⭐', nome: 'Pro',                desc: 'Seedance 2.0 — qualidade máxima, até 9 fotos de referência, máx. 10 segundos.',                                                 cr: '45 cr/s' },
   { id: 'antes_depois',     icon: '🔄', nome: 'Antes/Depois',       desc: 'Dois momentos, uma transformação, máx. 10 segundos.',                                                                           cr: '16 cr/s' },
   { id: 'video_video',      icon: '🎬', nome: 'Vídeo→Vídeo',        desc: 'Transforma um vídeo existente com IA.',                                                                                         cr: '12 cr/s' },
@@ -89,11 +89,12 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
   const [pollingId, setPollingId] = useState<string | null>(null)
   const [pollingSeconds, setPollingSeconds] = useState(0)
 
-  const fileRef         = useRef<HTMLInputElement>(null)
-  const tailFileRef     = useRef<HTMLInputElement>(null)
-  const planFileRef     = useRef<HTMLInputElement>(null)
-  const videoFileRef    = useRef<HTMLInputElement>(null)
-  const renderIaFileRef = useRef<HTMLInputElement>(null)
+  const fileRef            = useRef<HTMLInputElement>(null)
+  const tailFileRef        = useRef<HTMLInputElement>(null)
+  const planFileRef        = useRef<HTMLInputElement>(null)
+  const videoFileRef       = useRef<HTMLInputElement>(null)
+  const renderIaFileRef    = useRef<HTMLInputElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const pendingImageRef = useRef<{ file: File; preview: string } | null>(null)
 
   const isImageMode = modo === 'render_ia' || modo === 'mobilar_espaco'
@@ -117,7 +118,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
     if (!isImageMode) { setRenderIaFile(null); setRenderIaPreview(null) }
     setError('')
     if (isImageMode) return
-    const maxDuracaoModo = ['pro', 'antes_depois', 'projeto_aprovado'].includes(modo) ? 10 : 30
+    const maxDuracaoModo = modo === 'standard' ? 15 : 10
     if (duracao > maxDuracaoModo) setDuracao(maxDuracaoModo)
     // Apply pending image (from "Usar para vídeo" flow)
     if (pendingImageRef.current) {
@@ -349,6 +350,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
     e.preventDefault()
     if (!profile || loading) return
     setLoading(true); setError('')
+    abortControllerRef.current = new AbortController()
 
     try {
       // Image generation paths (Render + Mobilar Espaço)
@@ -364,6 +366,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
             style: renderStyle,
             promptPortugues: prompt,
           }),
+          signal: abortControllerRef.current.signal,
         })
         let data: Record<string, string> = {}
         try { data = await res.json() } catch {
@@ -408,6 +411,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
       const res = await fetch('/api/generate-video', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyData),
+        signal: abortControllerRef.current.signal,
       })
       let data: Record<string, string> = {}
       try { data = await res.json() } catch {
@@ -427,6 +431,7 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
       const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', profile.id).single()
       if (newProfile) setProfile(newProfile as Profile)
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') { setLoading(false); return }
       setError('Erro: ' + (err instanceof Error ? err.message : String(err)))
       setLoading(false)
     }
@@ -754,13 +759,13 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                   <span className="text-sm font-bold" style={{ color: '#00D4AA' }}>{duracao} segundos</span>
                 </div>
                 <input type="range" min={1}
-                  max={['pro', 'antes_depois', 'projeto_aprovado'].includes(modo) ? 10 : 30}
+                  max={modo === 'standard' ? 15 : 10}
                   step={1} value={duracao}
                   onChange={e => setDuracao(Number(e.target.value))}
                   className="w-full" style={{ accentColor: '#00D4AA' }} />
                 <div className="flex justify-between text-xs mt-1" style={{ color: '#9CA3AF' }}>
                   <span>1s</span>
-                  <span>{['pro', 'antes_depois', 'projeto_aprovado'].includes(modo) ? '10s' : '30s'}</span>
+                  <span>{modo === 'standard' ? '15s' : '10s'}</span>
                 </div>
               </div>
             )}
@@ -875,20 +880,12 @@ export default function DashboardClient({ profile: initialProfile, videos: initi
                         : `A IA está a processar o teu vídeo. Tempo normal de espera: ${PLANO_WAIT[plano] || '—'}. Podes continuar a navegar.`)
                     : 'A otimizar o prompt e submeter para geração...'}
                 </p>
-                {renderPollingId && (
+                {!pollingId && !renderPollingId && (
                   <button type="button"
-                    onClick={() => { setRenderPollingId(null); setLoading(false); setRenderPollingSeconds(0) }}
+                    onClick={() => { abortControllerRef.current?.abort(); setLoading(false) }}
                     className="text-xs font-semibold px-3 py-1.5 rounded-lg"
                     style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}>
-                    Cancelar espera e gerar outra imagem →
-                  </button>
-                )}
-                {pollingId && (
-                  <button type="button"
-                    onClick={() => { setPollingId(null); setLoading(false); setPollingSeconds(0) }}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg"
-                    style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}>
-                    Cancelar espera e gerar outro vídeo →
+                    Cancelar →
                   </button>
                 )}
               </div>
