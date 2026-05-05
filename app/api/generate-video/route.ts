@@ -153,10 +153,11 @@ export async function POST(request: Request) {
     const falModel = FAL_MODELS[modo as Modo]
     const isSeedance = modo === 'pro' || modo === 'projeto_aprovado'
 
-    // Duration: Seedance uses number (5 or 10), Kling v3 uses string number, Kling v1.6 uses "5"/"10"
-    let durationParam: string | number
+    // Duration: all models use string enum ("5", "10", etc.)
+    // Kling v3 accepts "3"-"15", Kling v1.6 only "5"/"10", Seedance "4"-"15"
+    let durationParam: string
     if (isSeedance) {
-      durationParam = duracaoNum <= 5 ? 5 : 10
+      durationParam = duracaoNum <= 5 ? '5' : '10'
     } else if (modo === 'standard') {
       durationParam = String(duracaoNum)
     } else {
@@ -173,7 +174,7 @@ export async function POST(request: Request) {
         const ext = imageMimeType.split('/')[1] || 'jpg'
         const url = await uploadToFalCDN(imageBase64, imageMimeType, `image.${ext}`)
         console.log('Standard image CDN URL:', url)
-        falInput.image_url = url
+        falInput.start_image_url = url
       } else if (modo === 'pro') {
         const ext = imageMimeType.split('/')[1] || 'jpg'
         const url = await uploadToFalCDN(imageBase64, imageMimeType, `image.${ext}`)
