@@ -419,12 +419,12 @@ export default function LandingPage() {
               <a href="#planos" className="text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.5)' }}>Planos</a>
               <a href="#funcionalidades" className="text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.5)' }}>Funcionalidades</a>
               <a href="#faq" className="text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.5)' }}>FAQ</a>
-              <a href="mailto:suporte@imorender.pt" className="text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.5)' }}>Contacto</a>
+              <a href="mailto:imorender@outlook.pt" className="text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.5)' }}>Contacto</a>
             </div>
           </div>
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>© 2026 ImoRender. Todos os direitos reservados.</p>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>suporte@imorender.pt</p>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>imorender@outlook.pt</p>
           </div>
         </div>
       </footer>
