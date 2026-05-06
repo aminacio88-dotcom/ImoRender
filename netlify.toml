@@ -8,3 +8,9 @@
 [build.environment]
   NODE_VERSION = "20"
   NEXT_TELEMETRY_DISABLED = "1"
+
+[functions]
+  directory = "netlify/functions"
+
+[functions."email-reminder-cron"]
+  schedule = "@hourly"
