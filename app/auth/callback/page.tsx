@@ -29,6 +29,7 @@ export default function AuthCallbackPage() {
               setTimeout(() => router.push('/auth/login'), 2000)
               return
             }
+            fetch('/api/auth/welcome-email', { method: 'POST' }).catch(() => {})
             setMessage('Conta confirmada! A redirecionar...')
             setTimeout(() => router.push('/dashboard'), 500)
             return
@@ -46,6 +47,7 @@ export default function AuthCallbackPage() {
             setTimeout(() => router.push('/auth/login'), 2000)
             return
           }
+          fetch('/api/auth/welcome-email', { method: 'POST' }).catch(() => {})
           setMessage('Conta confirmada! A redirecionar...')
           setTimeout(() => router.push('/dashboard'), 500)
           return
