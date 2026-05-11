@@ -12,7 +12,7 @@ const PLANOS = [
     watermark: true,
     features: [
       '100 créditos',
-      'Aproximadamente 0 vídeos',
+      '~1 vídeo Standard',
       'Tempo de espera até 15 min',
       'Marca de água ImoRender',
     ],
