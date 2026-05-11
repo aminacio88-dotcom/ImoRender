@@ -14,12 +14,12 @@ const fadeUp: Variants = {
 
 const PLANOS = [
   {
-    id: 'free', nome: 'Free', preco: 0, creditos: 50, popular: false,
+    id: 'free', nome: 'Free', preco: 0, creditos: 100, popular: false,
     descricao: 'Experimenta sem compromisso',
     wait: 'até 15 min',
     watermark: true,
     features: [
-      '50 créditos',
+      '100 créditos',
       'Aproximadamente 0 vídeos',
       'Tempo de espera até 15 min',
       'Marca de água ImoRender',
@@ -162,7 +162,7 @@ export default function LandingPage() {
 
           <motion.p initial="hidden" animate="visible" custom={5} variants={fadeUp}
             className="mt-4 text-sm" style={{ color: '#9CA3AF' }}>
-            50 créditos grátis · Sem cartão de crédito · Cancela quando quiseres
+            100 créditos grátis · Sem cartão de crédito · Cancela quando quiseres
           </motion.p>
         </div>
       </section>
@@ -390,7 +390,7 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto text-center">
           <div className="p-10 rounded-3xl" style={{ background: 'linear-gradient(135deg, #F0FDF9, #FFFFFF)', border: '1px solid #00D4AA' }}>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: '#1A1A2E' }}>Pronto para começar?</h2>
-            <p className="mb-8 text-lg" style={{ color: '#6B7280' }}>Cria a tua conta grátis hoje e recebe 50 créditos para experimentar.</p>
+            <p className="mb-8 text-lg" style={{ color: '#6B7280' }}>Cria a tua conta grátis hoje e recebe 100 créditos para experimentar.</p>
             <Link href="/auth/register"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition-all"
               style={{ background: '#00D4AA', color: '#FFFFFF' }}>

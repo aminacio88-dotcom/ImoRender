@@ -6,12 +6,12 @@ import PlanosClient from './PlanosClient'
 
 const PLANOS = [
   {
-    id: 'free', nome: 'Free', preco: 0, creditos: 50, popular: false,
+    id: 'free', nome: 'Free', preco: 0, creditos: 100, popular: false,
     target: 'Experimenta sem compromisso',
     wait: PLANO_WAIT.free,
     watermark: true,
     features: [
-      '50 créditos',
+      '100 créditos',
       'Aproximadamente 0 vídeos',
       'Tempo de espera até 15 min',
       'Marca de água ImoRender',

@@ -22,7 +22,7 @@ FORMATOS DISPONÍVEIS:
 - 1:1 quadrado (para feed Instagram)
 
 PLANOS E PREÇOS:
-- Free: €0/mês — 50 créditos — 1 vídeo de teste — espera até 15 minutos
+- Free: €0/mês — 100 créditos — espera até 15 minutos
 - Starter: €20.99/mês — 1.000 créditos — espera até 5 minutos
 - Team: €59.99/mês — 3.200 créditos — espera até 2 minutos
 - Agency: €179.99/mês — 12.000 créditos — processamento prioritário

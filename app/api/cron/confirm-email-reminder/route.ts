@@ -69,7 +69,7 @@ function emailHtml(nome: string, confirmUrl: string): string {
               </table>
 
               <p style="font-size:14px;color:#374151;line-height:1.65;margin:0 0 8px;">
-                Os teus <strong>50 créditos grátis</strong> estão à tua espera — sem cartão de crédito, sem compromisso.
+                Os teus <strong>100 créditos grátis</strong> estão à tua espera — sem cartão de crédito, sem compromisso.
               </p>
               <p style="font-size:14px;color:#374151;line-height:1.65;margin:0 0 32px;">
                 Se tiveres alguma dúvida estamos disponíveis em <a href="mailto:suporte@imorender.pt" style="color:#00B894;">suporte@imorender.pt</a>

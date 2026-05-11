@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
 
     await supabase.from('profiles').update({
       plano: 'free',
-      creditos: 50,
-      creditos_total: 50,
+      creditos: 100,
+      creditos_total: 100,
       stripe_subscription_id: null,
       plano_renovacao: null,
     }).eq('id', userId)
