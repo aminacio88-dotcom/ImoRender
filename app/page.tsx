@@ -22,7 +22,6 @@ const PLANOS = [
       '100 créditos',
       '~1 vídeo Standard',
       'Tempo de espera até 15 min',
-      'Marca de água ImoRender',
     ],
   },
   {
